@@ -2,14 +2,14 @@
 package com.cogito.bukkit.dev;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,9 +22,13 @@ import org.bukkit.plugin.PluginManager;
  */
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
+    public boolean debug;
+    private Map<Player, Boolean> gods;
 
     public DevBukkit(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
         super(pluginLoader, instance, desc, folder, plugin, cLoader);
+        debug = false;
+        gods = new HashMap<Player, Boolean>();
     }
 
     public void onDisable() {
@@ -53,14 +57,14 @@ public class DevBukkit extends JavaPlugin {
                 if (split[1].equalsIgnoreCase("debug")) {
                     if (split.length == 2) {
                         player.sendMessage(ChatColor.RED + "Dev: debug mode toggle.");
-                        entityListener.debugToggle();
+                        debugToggle();
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode on.");
-                            entityListener.debugOn();
+                            debugOn();
                         } else if (split[2].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode off.");
-                            entityListener.debugOn();
+                            debugOn();
                         } else {
                             sendUsage(player);
                         }
@@ -68,14 +72,14 @@ public class DevBukkit extends JavaPlugin {
                 } else if (split[1].equalsIgnoreCase("god")) {
                     if (split.length == 2) {
                         player.sendMessage(ChatColor.RED + "Dev: god mode on.");
-                        entityListener.godMode(player, true);
+                        godMode(player, true);
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: god mode on.");
-                            entityListener.godMode(player, true);
+                            godMode(player, true);
                         } else if (split[2].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: god mode off.");
-                            entityListener.godMode(player, false);
+                            godMode(player, false);
                         } else {
                             sendUsage(player);
                         }
@@ -94,5 +98,28 @@ public class DevBukkit extends JavaPlugin {
         player.sendMessage(ChatColor.RED + "Incorrect usage of command /dev. Examples:");
         player.sendMessage(ChatColor.RED + "/dev debug [on|off] - toggle full debug mode.");
         player.sendMessage(ChatColor.RED + "/dev god [on|off] - toggle god mode.");
+    }
+    
+    public void debugToggle() {
+        if(debug){
+            debug = false;
+        } else{
+            debug = true;
+        }
+    }
+
+    public void debugOn() {
+        debug = true;
+    }
+    public void debugOff() {
+        debug = false;
+    }
+    
+    public void godMode(Player player, boolean iAmGod){
+        gods.put(player, Boolean.valueOf(iAmGod));
+    }
+    
+    public boolean isGod(Player player) {
+        return gods.containsKey(player);
     }
 }

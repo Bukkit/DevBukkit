@@ -1,7 +1,6 @@
 
 package com.cogito.bukkit.dev;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.event.entity.EntityCombustEvent;
@@ -11,7 +10,6 @@ import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityListener;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 /**
@@ -21,18 +19,13 @@ import org.bukkit.entity.Player;
  */
 public class DevEntityListener extends EntityListener {
     private final DevBukkit plugin;
-    
-    private boolean debug;
-    private Map<Player, Boolean> gods;
 
     public DevEntityListener(DevBukkit instance) {
         plugin = instance;
-        debug = false;
-        gods = new HashMap<Player, Boolean>();
     }
     
     public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
-        if(debug){
+        if(plugin.debug){
             System.out.println(event.getCause() + "("+event.getDamage()+"): "
                     + event.getEntity().getClass().getSimpleName()
                     + " was damaged by block "
@@ -41,18 +34,15 @@ public class DevEntityListener extends EntityListener {
                     );
         }
         if(event.getEntity() instanceof Player){
-            event.setCancelled(true);
+            if(plugin.isGod((Player) event.getEntity())){
+                event.setCancelled(true);
+            }
         }
         
     }
 
-    private String getDescriptor(Entity entity) {
-        // TODO work out how to do this well
-        return entity.getClass().getName();
-    }
-
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if(debug){
+        if(plugin.debug){
         System.out.println(
                 event.getCause() + "("+event.getDamage()+"): "
                 + event.getEntity().getClass().getSimpleName()
@@ -62,12 +52,14 @@ public class DevEntityListener extends EntityListener {
                 );
         }
         if(event.getEntity() instanceof Player){
-            event.setCancelled(true);
+            if(plugin.isGod((Player) event.getEntity())){
+                event.setCancelled(true);
+            }
         }
     }
     
     public void onEntityDamageByProjectile(EntityDamageByProjectileEvent event) {
-        if(debug){
+        if(plugin.debug){
             System.out.println(
                     event.getCause() + "("+event.getDamage()+"): "
                     + event.getEntity().getClass().getSimpleName()
@@ -75,50 +67,31 @@ public class DevEntityListener extends EntityListener {
                     + event.getDamager().getClass().getSimpleName()
                     + ")."
                     );
-            }
-            if(event.getEntity() instanceof Player){
+        }
+        if(event.getEntity() instanceof Player){
+            if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
             }
+        }
     }
     
     public void onEntityCombust(EntityCombustEvent event) {
-        if(debug){
+        if(plugin.debug){
             System.out.println(
                     event.getEntity() + ": "
                     + event.getEntity().getClass().getSimpleName()
                     + " caught fire."
                     );
+        }
+        if(event.getEntity() instanceof Player){
+            if(plugin.isGod((Player) event.getEntity())){
+                event.setCancelled(true);
             }
-            if(event.getEntity() instanceof Player){
-                if(isGod((Player) event.getEntity())){
-                    event.setCancelled(true);
-                }
-            }
-    }
-    
-    private boolean isGod(Player player) {
-        return gods.containsKey(player);
+        }
     }
 
     public void onEntityDamage(EntityDamageEvent event) {
     }
 
-    public void debugToggle() {
-        if(debug){
-            debug = false;
-        } else{
-            debug = true;
-        }
-    }
-
-    public void debugOn() {
-        debug = true;
-    }
-    public void debugOff() {
-        debug = false;
-    }
     
-    public void godMode(Player player, boolean iAmGod){
-        gods.put(player, Boolean.valueOf(iAmGod));
-    }
 }

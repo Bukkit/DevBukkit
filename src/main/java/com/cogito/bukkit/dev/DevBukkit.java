@@ -14,6 +14,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.command.Command;
 
 
 /**
@@ -50,10 +51,9 @@ public class DevBukkit extends JavaPlugin {
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
     }
     
-    public boolean onCommand(Player player, String command, String[] args) {
+    public boolean onCommand(Player player, Command command, String commandLabel, String[] args) {
         String[] split = args;
-        System.out.println("command recieved: "+args);
-        if (command.equalsIgnoreCase("/dev")) {
+        if (command.getName().equalsIgnoreCase("dev")) {
             if (split.length > 1) {
                 if (split[1].equalsIgnoreCase("debug")) {
                     if (split.length == 2) {

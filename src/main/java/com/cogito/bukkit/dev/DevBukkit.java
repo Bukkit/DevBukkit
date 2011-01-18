@@ -8,12 +8,13 @@ import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event.Priority;
 import org.bukkit.event.Event;
+import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
 
 /**
  * Miscellaneous administrative commands
@@ -49,30 +50,30 @@ public class DevBukkit extends JavaPlugin {
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
     }
     
-    public void onCommand(Player player, String command, String[] args) {
+    public boolean onCommand(Player player, String command, String[] args) {
         String[] split = args;
-
+        System.out.println("command recieved: "+args);
         if (command.equalsIgnoreCase("/dev")) {
             if (split.length > 1) {
                 if (split[1].equalsIgnoreCase("debug")) {
                     if (split.length == 2) {
                         player.sendMessage(ChatColor.RED + "Dev: debug mode toggle.");
-                        debugToggle();
+                        debugModeToggle();
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode on.");
-                            debugOn();
+                            debugMode(true);
                         } else if (split[2].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode off.");
-                            debugOn();
+                            debugMode(false);
                         } else {
-                            sendUsage(player);
+                            return false;
                         }
                     }
                 } else if (split[1].equalsIgnoreCase("god")) {
                     if (split.length == 2) {
                         player.sendMessage(ChatColor.RED + "Dev: god mode on.");
-                        godMode(player, true);
+                        godModeToggle(player);
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: god mode on.");
@@ -81,38 +82,38 @@ public class DevBukkit extends JavaPlugin {
                             player.sendMessage(ChatColor.RED + "Dev: god mode off.");
                             godMode(player, false);
                         } else {
-                            sendUsage(player);
+                            return false;
                         }
                     }
                 } else{
-                    sendUsage(player);
+                    return false;
                 }
             } else {
-                sendUsage(player);
+                return false;
             }
-
-        } 
+            return true;
+        }
+        return false;
     }
     
-    public void sendUsage(Player player){
-        player.sendMessage(ChatColor.RED + "Incorrect usage of command /dev. Examples:");
-        player.sendMessage(ChatColor.RED + "/dev debug [on|off] - toggle full debug mode.");
-        player.sendMessage(ChatColor.RED + "/dev god [on|off] - toggle god mode.");
-    }
-    
-    public void debugToggle() {
+    public void debugModeToggle() {
         if(debug){
-            debug = false;
+            debugMode(false);
         } else{
-            debug = true;
+            debugMode(true);
         }
     }
 
-    public void debugOn() {
-        debug = true;
+    public void debugMode(boolean debug) {
+        this.debug = debug;
     }
-    public void debugOff() {
-        debug = false;
+    
+    public void godModeToggle(Player player) {
+        if(isGod(player)){
+            godMode(player, false);
+        } else{
+            godMode(player, true);
+        }
     }
     
     public void godMode(Player player, boolean iAmGod){
@@ -120,6 +121,6 @@ public class DevBukkit extends JavaPlugin {
     }
     
     public boolean isGod(Player player) {
-        return gods.containsKey(player);
+        return gods.containsKey(player)?gods.get(player):false;
     }
 }

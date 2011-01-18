@@ -1,16 +1,13 @@
 
 package com.cogito.bukkit.dev;
 
-import java.util.Map;
-
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityListener;
-
-import org.bukkit.entity.Player;
 
 /**
  * Handle all Player related events

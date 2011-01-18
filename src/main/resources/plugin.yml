@@ -4,4 +4,7 @@ version: 0.1
 commands:
   dev:
     description: Dev Commands
-    usage: /dev
+    usage: |        
+        Incorrect usage of command /<command>. Examples:
+           /<command> debug [on|off] - toggle full debug mode.
+           /<command> god [on|off] - toggle god mode.

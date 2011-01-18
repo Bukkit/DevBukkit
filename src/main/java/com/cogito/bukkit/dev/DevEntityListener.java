@@ -25,6 +25,7 @@ public class DevEntityListener extends EntityListener {
         if(plugin.debug){
             System.out.println(event.getCause() + "("+event.getDamage()+"): "
                     + event.getEntity().getClass().getSimpleName()
+                    +"["+event.getEntity().getEntityId()+"]"
                     + " was damaged by block "
                     + event.getDamager().getClass().getSimpleName()
                     + "."
@@ -43,8 +44,10 @@ public class DevEntityListener extends EntityListener {
         System.out.println(
                 event.getCause() + "("+event.getDamage()+"): "
                 + event.getEntity().getClass().getSimpleName()
+                +"["+event.getEntity().getEntityId()+"]"
                 + " was damaged by "
                 + event.getDamager().getClass().getSimpleName()
+                +"["+event.getDamager().getEntityId()+"]"
                 + "."
                 );
         }
@@ -60,8 +63,10 @@ public class DevEntityListener extends EntityListener {
             System.out.println(
                     event.getCause() + "("+event.getDamage()+"): "
                     + event.getEntity().getClass().getSimpleName()
+                    +"["+event.getEntity().getEntityId()+"]"
                     + " was damaged by a projectile ("
                     + event.getDamager().getClass().getSimpleName()
+                    +"["+event.getDamager().getEntityId()+"]"
                     + ")."
                     );
         }
@@ -75,8 +80,9 @@ public class DevEntityListener extends EntityListener {
     public void onEntityCombust(EntityCombustEvent event) {
         if(plugin.debug){
             System.out.println(
-                    event.getEntity() + ": "
+                    event.getType() + ": "
                     + event.getEntity().getClass().getSimpleName()
+                    +"["+event.getEntity().getEntityId()+"]"
                     + " caught fire."
                     );
         }
@@ -88,6 +94,19 @@ public class DevEntityListener extends EntityListener {
     }
 
     public void onEntityDamage(EntityDamageEvent event) {
+        if(plugin.debug){
+            System.out.println(
+                    event.getCause() + "("+event.getDamage()+"): "
+                    + event.getEntity().getClass().getSimpleName()
+                    +"["+event.getEntity().getEntityId()+"]"
+                    + " was damaged."
+                    );
+        }
+        if(event.getEntity() instanceof Player){
+            if(plugin.isGod((Player) event.getEntity())){
+                event.setCancelled(true);
+            }
+        }
     }
 
     

@@ -3,7 +3,12 @@ package com.cogito.bukkit.dev;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
@@ -29,13 +34,30 @@ import org.bukkit.command.Command;
  */
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
-    public boolean debug;
+    private boolean debugGlobal;
+    private boolean debugKill;
+    private Map<Class<?>, Boolean> debugDefaultees;
+    private Map<Class<?>, Boolean> debugPrivates;
     private Map<Player, Boolean> gods;
+    private SortedMap<String, Class<?>> eventAliases;
 
     public DevBukkit(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
         super(pluginLoader, instance, desc, folder, plugin, cLoader);
-        debug = false;
+        debugGlobal = false;
+        debugKill = false;
+        debugDefaultees = new HashMap<Class<?>, Boolean>();
+        debugPrivates = new HashMap<Class<?>, Boolean>();
         gods = new HashMap<Player, Boolean>();
+        eventAliases = new TreeMap<String, Class<?>>();
+        initialiseEventAliases();
+    }
+
+    private void initialiseEventAliases() {
+        eventAliases.put("eventEntityDBB", EntityDamageByBlockEvent.class);
+        eventAliases.put("eventEntityDBE", EntityDamageByEntityEvent.class);
+        eventAliases.put("eventEntityDBP", EntityDamageByProjectileEvent.class);
+        eventAliases.put("eventEntityC", EntityCombustEvent.class);
+        eventAliases.put("eventEntityD", EntityDamageEvent.class);
     }
 
     public void onDisable() {
@@ -67,10 +89,31 @@ public class DevBukkit extends JavaPlugin {
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode on.");
-                            debugMode(true);
+                            setDebugMode(true);
                         } else if (split[2].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode off.");
-                            debugMode(false);
+                            setDebugMode(false);
+                        } else if (split[2].equalsIgnoreCase("kill")) {
+                            player.sendMessage(ChatColor.RED + "Dev: killed debug mode.");
+                            killDebugMode(true);
+                        } else {
+                            return false;
+                        }
+                    }
+                } else if (split[1].startsWith("event")) {
+                    if(eventAliases.containsKey(split[1])){
+                        Class<?> eventClass = eventAliases.get(split[1]);
+                        if (split[1].equalsIgnoreCase("events")) {
+                            printEventAliases(player);
+                        } else if (split[2].equalsIgnoreCase("on")) {
+                            player.sendMessage(ChatColor.RED + "Dev: "+split[1]+" debug mode on.");
+                            setDebugMode(eventClass, true);
+                        } else if (split[2].equalsIgnoreCase("off")) {
+                            player.sendMessage(ChatColor.RED + "Dev: "+split[1]+" debug mode on.");
+                            setDebugMode(eventClass, false);
+                        } else if (split[2].equalsIgnoreCase("default")) {
+                            player.sendMessage(ChatColor.RED + "Dev: "+split[1]+" debug mode set to default.");
+                            setDefaultMode(eventClass, true);
                         } else {
                             return false;
                         }
@@ -82,10 +125,10 @@ public class DevBukkit extends JavaPlugin {
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: god mode on.");
-                            godMode(player, true);
+                            setGodMode(player, true);
                         } else if (split[2].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: god mode off.");
-                            godMode(player, false);
+                            setGodMode(player, false);
                         } else {
                             return false;
                         }
@@ -101,27 +144,41 @@ public class DevBukkit extends JavaPlugin {
         return false;
     }
     
-    public void debugModeToggle() {
+    private void printEventAliases(Player player) {
+        Set<Entry<String, Class<?>>> list = eventAliases.entrySet();
+        for(Entry<String, Class<?>> entry : list){
+            player.sendMessage(ChatColor.RED + entry.getKey()+" -> " + entry.getValue().getSimpleName());
+        }
+    }
+
+    private void killDebugMode(boolean kill) {
+        this.debugKill = kill;
+    }
+
+    private void debugModeToggle() {
+        if(debugGlobal){
+            setDebugMode(false);
+        } else{
+            setDebugMode(true);
+        }
+    }
+
+    private void setDebugMode(boolean debug) {
+        this.debugGlobal = debug;
         if(debug){
-            debugMode(false);
-        } else{
-            debugMode(true);
+            killDebugMode(false);
         }
     }
 
-    public void debugMode(boolean debug) {
-        this.debug = debug;
-    }
-
-    public void godModeToggle(Player player) {
+    private void godModeToggle(Player player) {
         if(isGod(player)){
-            godMode(player, false);
+            setGodMode(player, false);
         } else{
-            godMode(player, true);
+            setGodMode(player, true);
         }
     }
 
-    public void godMode(Player player, boolean iAmGod){
+    private void setGodMode(Player player, boolean iAmGod){
         gods.put(player, Boolean.valueOf(iAmGod));
     }
 
@@ -175,5 +232,26 @@ public class DevBukkit extends JavaPlugin {
             + event.getEntity().getClass().getSimpleName()
             + "["+event.getEntity().getEntityId()+"]"
             + " was damaged.";
+    }
+
+    private boolean debugPrivate(Class<?> eventClass) {
+        return debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):true;
+    }
+    
+    private void setDefaultMode(Class<?> eventClass, boolean eventDefault){
+        debugDefaultees.put(eventClass, eventDefault);
+    }
+    
+    private void setDebugMode(Class<?> eventClass, boolean debug){
+        debugPrivates.put(eventClass, Boolean.valueOf(debug));
+        setDefaultMode(eventClass, false);
+    }
+
+    private boolean defaultee(Class<?> eventClass) {
+        return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true;
+    }
+
+    public boolean debug(Class<?> eventClass) {
+        return !debugKill && (defaultee(eventClass) && debugGlobal) || (!defaultee(eventClass) && debugPrivate(eventClass));
     }
 }

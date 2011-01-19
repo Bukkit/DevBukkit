@@ -7,4 +7,7 @@ commands:
     usage: |        
         Incorrect usage of command /<command>. Examples:
            /<command> debug [on|off] - toggle full debug mode.
+           /<command> debug kill - kill debug mode.
+           /<command> eventName [on|off|default] - toggle event debug mode.
+           /<command> events - list all supported events and their command aliases.
            /<command> god [on|off] - toggle god mode.

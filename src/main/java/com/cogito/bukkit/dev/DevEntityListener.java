@@ -22,7 +22,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
-        if(plugin.debug){
+        if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
@@ -34,7 +34,7 @@ public class DevEntityListener extends EntityListener {
     }
 
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if(plugin.debug){
+        if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
@@ -45,7 +45,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityDamageByProjectile(EntityDamageByProjectileEvent event) {
-        if(plugin.debug){
+        if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
@@ -56,7 +56,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityCombust(EntityCombustEvent event) {
-        if(plugin.debug){
+        if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
@@ -67,7 +67,7 @@ public class DevEntityListener extends EntityListener {
     }
 
     public void onEntityDamage(EntityDamageEvent event) {
-        if(plugin.debug){
+        if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){

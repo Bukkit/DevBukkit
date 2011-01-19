@@ -10,6 +10,11 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
+import org.bukkit.event.entity.EntityCombustEvent;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageByProjectileEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
@@ -107,7 +112,7 @@ public class DevBukkit extends JavaPlugin {
     public void debugMode(boolean debug) {
         this.debug = debug;
     }
-    
+
     public void godModeToggle(Player player) {
         if(isGod(player)){
             godMode(player, false);
@@ -115,12 +120,60 @@ public class DevBukkit extends JavaPlugin {
             godMode(player, true);
         }
     }
-    
+
     public void godMode(Player player, boolean iAmGod){
         gods.put(player, Boolean.valueOf(iAmGod));
     }
-    
+
     public boolean isGod(Player player) {
         return gods.containsKey(player)?gods.get(player):false;
+    }
+
+    public String debugString(EntityDamageByBlockEvent event){
+        return
+            event.getCause() + "("+event.getDamage()+"): "
+            + event.getEntity().getClass().getSimpleName()
+            + "["+event.getEntity().getEntityId()+"]"
+            + " was damaged by block "
+            + event.getDamager().getClass().getSimpleName()
+            + ".";
+    }
+
+    public String debugString(EntityDamageByEntityEvent event){
+        return
+            event.getCause() + "("+event.getDamage()+"): "
+            + event.getEntity().getClass().getSimpleName()
+            + "["+event.getEntity().getEntityId()+"]"
+            + " was damaged by "
+            + event.getDamager().getClass().getSimpleName()
+            + "["+event.getDamager().getEntityId()+"]"
+            + ".";
+    }
+
+    public String debugString(EntityDamageByProjectileEvent event) {
+        return 
+            event.getCause() + "("+event.getDamage()+"): "
+            + event.getEntity().getClass().getSimpleName()
+            + "["+event.getEntity().getEntityId()+"]"
+            + " was damaged by a projectile ("
+            + event.getDamager().getClass().getSimpleName()
+            + "["+event.getDamager().getEntityId()+"]"
+            + ").";
+    }
+
+    public String debugString(EntityCombustEvent event) {
+        return 
+            event.getType() + ": "
+            + event.getEntity().getClass().getSimpleName()
+            + "["+event.getEntity().getEntityId()+"]"
+            + " caught fire.";
+    }
+
+    public String debugString(EntityDamageEvent event) {
+        return 
+            event.getCause() + "("+event.getDamage()+"): "
+            + event.getEntity().getClass().getSimpleName()
+            + "["+event.getEntity().getEntityId()+"]"
+            + " was damaged.";
     }
 }

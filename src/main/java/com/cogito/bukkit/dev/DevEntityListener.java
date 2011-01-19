@@ -23,13 +23,7 @@ public class DevEntityListener extends EntityListener {
     
     public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
         if(plugin.debug){
-            System.out.println(event.getCause() + "("+event.getDamage()+"): "
-                    + event.getEntity().getClass().getSimpleName()
-                    +"["+event.getEntity().getEntityId()+"]"
-                    + " was damaged by block "
-                    + event.getDamager().getClass().getSimpleName()
-                    + "."
-                    );
+            System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
@@ -41,15 +35,7 @@ public class DevEntityListener extends EntityListener {
 
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if(plugin.debug){
-        System.out.println(
-                event.getCause() + "("+event.getDamage()+"): "
-                + event.getEntity().getClass().getSimpleName()
-                +"["+event.getEntity().getEntityId()+"]"
-                + " was damaged by "
-                + event.getDamager().getClass().getSimpleName()
-                +"["+event.getDamager().getEntityId()+"]"
-                + "."
-                );
+            System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
@@ -60,15 +46,7 @@ public class DevEntityListener extends EntityListener {
     
     public void onEntityDamageByProjectile(EntityDamageByProjectileEvent event) {
         if(plugin.debug){
-            System.out.println(
-                    event.getCause() + "("+event.getDamage()+"): "
-                    + event.getEntity().getClass().getSimpleName()
-                    +"["+event.getEntity().getEntityId()+"]"
-                    + " was damaged by a projectile ("
-                    + event.getDamager().getClass().getSimpleName()
-                    +"["+event.getDamager().getEntityId()+"]"
-                    + ")."
-                    );
+            System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
@@ -79,12 +57,7 @@ public class DevEntityListener extends EntityListener {
     
     public void onEntityCombust(EntityCombustEvent event) {
         if(plugin.debug){
-            System.out.println(
-                    event.getType() + ": "
-                    + event.getEntity().getClass().getSimpleName()
-                    +"["+event.getEntity().getEntityId()+"]"
-                    + " caught fire."
-                    );
+            System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
@@ -95,12 +68,7 @@ public class DevEntityListener extends EntityListener {
 
     public void onEntityDamage(EntityDamageEvent event) {
         if(plugin.debug){
-            System.out.println(
-                    event.getCause() + "("+event.getDamage()+"): "
-                    + event.getEntity().getClass().getSimpleName()
-                    +"["+event.getEntity().getEntityId()+"]"
-                    + " was damaged."
-                    );
+            System.out.println(plugin.debugString(event));
         }
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){

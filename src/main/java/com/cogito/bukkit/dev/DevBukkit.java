@@ -53,11 +53,11 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private void initialiseEventAliases() {
-        eventAliases.put("eventEntityDBB", EntityDamageByBlockEvent.class);
-        eventAliases.put("eventEntityDBE", EntityDamageByEntityEvent.class);
-        eventAliases.put("eventEntityDBP", EntityDamageByProjectileEvent.class);
-        eventAliases.put("eventEntityC", EntityCombustEvent.class);
-        eventAliases.put("eventEntityD", EntityDamageEvent.class);
+        eventAliases.put("EntityDBB", EntityDamageByBlockEvent.class);
+        eventAliases.put("EntityDBE", EntityDamageByEntityEvent.class);
+        eventAliases.put("EntityDBP", EntityDamageByProjectileEvent.class);
+        eventAliases.put("EntityC", EntityCombustEvent.class);
+        eventAliases.put("EntityD", EntityDamageEvent.class);
     }
 
     public void onDisable() {
@@ -101,22 +101,26 @@ public class DevBukkit extends JavaPlugin {
                         }
                     }
                 } else if (split[1].startsWith("event")) {
-                    if(eventAliases.containsKey(split[1])){
-                        Class<?> eventClass = eventAliases.get(split[1]);
-                        if (split[1].equalsIgnoreCase("events")) {
-                            printEventAliases(player);
-                        } else if (split[2].equalsIgnoreCase("on")) {
-                            player.sendMessage(ChatColor.RED + "Dev: "+split[1]+" debug mode on.");
+                    if (split[1].equalsIgnoreCase("events")) {
+                        printEventAliases(player);
+                    } else if(split.length > 2 && eventAliases.containsKey(split[2])){
+                         Class<?> eventClass = eventAliases.get(split[2]);
+                         if(split.length < 4){
+                             return false;
+                         } else if (split[3].equalsIgnoreCase("on")) {
+                            player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode on.");
                             setDebugMode(eventClass, true);
-                        } else if (split[2].equalsIgnoreCase("off")) {
-                            player.sendMessage(ChatColor.RED + "Dev: "+split[1]+" debug mode on.");
+                        } else if (split[3].equalsIgnoreCase("off")) {
+                            player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode off.");
                             setDebugMode(eventClass, false);
-                        } else if (split[2].equalsIgnoreCase("default")) {
-                            player.sendMessage(ChatColor.RED + "Dev: "+split[1]+" debug mode set to default.");
+                        } else if (split[3].equalsIgnoreCase("default")) {
+                            player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode set to default.");
                             setDefaultMode(eventClass, true);
                         } else {
                             return false;
                         }
+                    } else {
+                        return false;
                     }
                 } else if (split[1].equalsIgnoreCase("god")) {
                     if (split.length == 2) {
@@ -145,8 +149,8 @@ public class DevBukkit extends JavaPlugin {
     }
     
     private void printEventAliases(Player player) {
-        Set<Entry<String, Class<?>>> list = eventAliases.entrySet();
-        for(Entry<String, Class<?>> entry : list){
+        player.sendMessage(ChatColor.RED + "== Event Aliases ==");
+        for(Entry<String, Class<?>> entry : eventAliases.entrySet()){
             player.sendMessage(ChatColor.RED + entry.getKey()+" -> " + entry.getValue().getSimpleName());
         }
     }

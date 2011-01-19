@@ -68,7 +68,7 @@ public class DevBukkit extends JavaPlugin {
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvent(Event.Type.ENTITY_COMBUST, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGED, entityListener, Priority.Normal, this);
-        //pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_BLOCK, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_BLOCK, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_ENTITY, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_PROJECTILE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
@@ -196,7 +196,7 @@ public class DevBukkit extends JavaPlugin {
             + event.getEntity().getClass().getSimpleName()
             + "["+event.getEntity().getEntityId()+"]"
             + " was damaged by block "
-            + event.getDamager().getClass().getSimpleName()
+            + ((event.getDamager() == null)?"null":event.getDamager().getClass().getSimpleName())
             + ".";
     }
 

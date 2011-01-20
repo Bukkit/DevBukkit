@@ -3,10 +3,8 @@ package com.cogito.bukkit.dev;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -37,7 +35,6 @@ import org.bukkit.command.Command;
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
     private boolean debugGlobal;
-    private boolean debugKill;
     private Map<Class<?>, Boolean> debugDefaultees;
     private Map<Class<?>, Boolean> debugPrivates;
     private Map<Player, Boolean> gods;
@@ -46,7 +43,6 @@ public class DevBukkit extends JavaPlugin {
     public DevBukkit(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
         super(pluginLoader, instance, desc, folder, plugin, cLoader);
         debugGlobal = false;
-        debugKill = false;
         debugDefaultees = new HashMap<Class<?>, Boolean>();
         debugPrivates = new HashMap<Class<?>, Boolean>();
         gods = new HashMap<Player, Boolean>();
@@ -55,14 +51,15 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private void initialiseEventAliases() {
+        //need to be in lower case
         //eventAliases.put("Event", Event.class);
-        eventAliases.put("Entity", EntityEvent.class);
-        eventAliases.put("EntityC", EntityCombustEvent.class);
-        eventAliases.put("EntityDBB", EntityDamageByBlockEvent.class);
-        eventAliases.put("EntityDBE", EntityDamageByEntityEvent.class);
-        eventAliases.put("EntityDBP", EntityDamageByProjectileEvent.class);
-        eventAliases.put("EntityD", EntityDamageEvent.class);
-        eventAliases.put("EntityE", EntityExplodeEvent.class);
+        eventAliases.put("entity", EntityEvent.class);
+        eventAliases.put("entityc", EntityCombustEvent.class);
+        eventAliases.put("entitydbb", EntityDamageByBlockEvent.class);
+        eventAliases.put("entitydbe", EntityDamageByEntityEvent.class);
+        eventAliases.put("entitydbp", EntityDamageByProjectileEvent.class);
+        eventAliases.put("entityd", EntityDamageEvent.class);
+        eventAliases.put("entitye", EntityExplodeEvent.class);
     }
 
     public void onDisable() {
@@ -91,53 +88,46 @@ public class DevBukkit extends JavaPlugin {
                     if (split.length == 2) {
                         player.sendMessage(ChatColor.RED + "Dev: debug mode toggle.");
                         debugModeToggle();
-                    } else if (split.length == 3) {
+                    } else if (split.length >= 3) {
                         if (split[2].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode on.");
                             setDebugMode(true);
                         } else if (split[2].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode off.");
                             setDebugMode(false);
-                        } else if (split[2].equalsIgnoreCase("kill")) {
-                            player.sendMessage(ChatColor.RED + "Dev: killed debug mode.");
-                            killDebugMode(true);
-                        } else {
+                        } else if(split.length > 3 && eventAliases.containsKey(split[2].toLowerCase())){
+                            Class<?> eventClass = eventAliases.get(split[2]);
+                            boolean priv = false;
+                            if(split.length > 4 && split[4].equalsIgnoreCase("p")){
+                                priv = true;
+                            } 
+                            if (split[3].equalsIgnoreCase("on")) {
+                                player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode on"+(priv?" (private).":"."));
+                                setDebugMode(eventClass, true, priv);
+                            } else if (split[3].equalsIgnoreCase("off")) {
+                                player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode off"+(priv?" (private).":"."));
+                                setDebugMode(eventClass, false, priv);
+                            } else {
+                                return false;
+                            }
+                       } else {
                             return false;
                         }
                     }
-                } else if (split[1].equalsIgnoreCase("events")) {
-                    printEventAliases(player);
-                } else if (split[1].equalsIgnoreCase("event")) {
-                     if(split.length > 2 && eventAliases.containsKey(split[2])){
-                         Class<?> eventClass = eventAliases.get(split[2]);
-                         if(split.length < 4){
-                             return false;
-                         } else if (split[3].equalsIgnoreCase("on")) {
-                            player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode on.");
-                            setDebugMode(eventClass, true);
-                        } else if (split[3].equalsIgnoreCase("off")) {
-                            player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode off.");
-                            setDebugMode(eventClass, false);
-                        } else if (split[3].equalsIgnoreCase("default")) {
-                            player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode set to default.");
-                            setDefaultMode(eventClass, true);
-                        } else {
-                            return false;
-                        }
-                    } else {
-                        return false;
-                    }
+                } else if (split[1].equalsIgnoreCase("help")) {
+                    printHelp(player);
                 } else if (split[1].equalsIgnoreCase("god")) {
                     if (split.length == 2) {
-                        player.sendMessage(ChatColor.RED + "Dev: god mode on.");
-                        godModeToggle(player);
+                        player.sendMessage(ChatColor.RED + "Dev: god mode "+(godModeToggle(player)?"on":"off")+".");
                     } else if (split.length == 3) {
                         if (split[2].equalsIgnoreCase("on")) {
-                            player.sendMessage(ChatColor.RED + "Dev: god mode on.");
-                            setGodMode(player, true);
+                            if(setGodMode(player, true)){
+                                player.sendMessage(ChatColor.RED + "Dev: god mode on.");
+                            }
                         } else if (split[2].equalsIgnoreCase("off")) {
-                            player.sendMessage(ChatColor.RED + "Dev: god mode off.");
-                            setGodMode(player, false);
+                            if(setGodMode(player, false)){
+                                player.sendMessage(ChatColor.RED + "Dev: god mode off.");
+                            }
                         } else {
                             return false;
                         }
@@ -153,15 +143,11 @@ public class DevBukkit extends JavaPlugin {
         return false;
     }
     
-    private void printEventAliases(Player player) {
-        player.sendMessage(ChatColor.RED + "== Event Aliases ==");
+    private void printHelp(Player player) {
+        player.sendMessage(ChatColor.RED + "== Dev Help ==");
         for(Entry<String, Class<?>> entry : eventAliases.entrySet()){
-            player.sendMessage(ChatColor.RED + entry.getKey()+" -> " + entry.getValue().getSimpleName());
+            player.sendMessage((debug(entry.getValue())?ChatColor.GREEN:ChatColor.RED) + entry.getKey() + " -> " + entry.getValue().getSimpleName());
         }
-    }
-
-    private void killDebugMode(boolean kill) {
-        this.debugKill = kill;
     }
 
     private void debugModeToggle() {
@@ -174,21 +160,23 @@ public class DevBukkit extends JavaPlugin {
 
     private void setDebugMode(boolean debug) {
         this.debugGlobal = debug;
-        if(debug){
-            killDebugMode(false);
-        }
     }
 
-    private void godModeToggle(Player player) {
+    private boolean godModeToggle(Player player) {
         if(isGod(player)){
-            setGodMode(player, false);
+            return setGodMode(player, false);
         } else{
-            setGodMode(player, true);
+            return setGodMode(player, true);
         }
     }
 
-    private void setGodMode(Player player, boolean iAmGod){
-        gods.put(player, Boolean.valueOf(iAmGod));
+    private boolean setGodMode(Player player, boolean iAmGod){
+        if(player.isOp()){
+            gods.put(player, Boolean.valueOf(iAmGod));
+            return iAmGod;
+        } else {
+            return false;
+        }
     }
 
     public boolean isGod(Player player) {
@@ -251,30 +239,31 @@ public class DevBukkit extends JavaPlugin {
             + " exploded.";
     }
 
-    private boolean debugPrivate(Class<?> eventClass) {
-        return debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):true;
-    }
-    
-    private void setDefaultMode(Class<?> eventClass, boolean eventDefault){
-        debugDefaultees.put(eventClass, eventDefault);
-    }
-    
-    private void setDebugMode(Class<?> eventClass, boolean debug){
-        debugPrivates.put(eventClass, Boolean.valueOf(debug));
-        setDefaultMode(eventClass, false);
+    private void setDebugMode(Class<?> eventClass, boolean debug, boolean priv){
+        if(priv){
+            debugPrivates.put(eventClass, Boolean.valueOf(debug));
+        } else {
+            debugDefaultees.put(eventClass, Boolean.valueOf(debug));
+            debugPrivates.remove(eventClass);
+        }
+        if(debug){
+            debugGlobal = true;
+        }
     }
 
     private boolean defaultee(Class<?> eventClass) {
         if(eventClass.getSuperclass() != null){
-            return defaultee(eventClass.getSuperclass()) &&
-                   debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true;
+            return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true &&
+                   defaultee(eventClass.getSuperclass());
         } else {
             return true;
         }
     }
 
     public boolean debug(Class<?> eventClass) {
-        boolean defaulting = defaultee(eventClass);
-        return !debugKill && (defaulting && debugGlobal) || (!defaulting && debugPrivate(eventClass));
+        // if debug killed, return false.
+        // if a private debug setting is set, return that value;
+        // otherwise, recursively check the default value and return if all super defaults are on.
+        return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):defaultee(eventClass)):false;
     }
 }

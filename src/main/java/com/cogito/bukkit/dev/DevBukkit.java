@@ -21,6 +21,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
@@ -56,11 +57,12 @@ public class DevBukkit extends JavaPlugin {
     private void initialiseEventAliases() {
         //eventAliases.put("Event", Event.class);
         eventAliases.put("Entity", EntityEvent.class);
+        eventAliases.put("EntityC", EntityCombustEvent.class);
         eventAliases.put("EntityDBB", EntityDamageByBlockEvent.class);
         eventAliases.put("EntityDBE", EntityDamageByEntityEvent.class);
         eventAliases.put("EntityDBP", EntityDamageByProjectileEvent.class);
-        eventAliases.put("EntityC", EntityCombustEvent.class);
         eventAliases.put("EntityD", EntityDamageEvent.class);
+        eventAliases.put("EntityE", EntityExplodeEvent.class);
     }
 
     public void onDisable() {
@@ -240,6 +242,14 @@ public class DevBukkit extends JavaPlugin {
             + "["+event.getEntity().getEntityId()+"]"
             + " was damaged.";
     }
+    
+    public String debugString(EntityExplodeEvent event) {
+        return 
+            event.getType() + ": "
+            + event.getEntity().getClass().getSimpleName()
+            + "["+event.getEntity().getEntityId()+"]"
+            + " exploded.";
+    }
 
     private boolean debugPrivate(Class<?> eventClass) {
         return debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):true;
@@ -256,8 +266,8 @@ public class DevBukkit extends JavaPlugin {
 
     private boolean defaultee(Class<?> eventClass) {
         if(eventClass.getSuperclass() != null){
-            return defaultee(eventClass.getSuperclass())
-                && debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true;
+            return defaultee(eventClass.getSuperclass()) &&
+                   debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true;
         } else {
             return true;
         }

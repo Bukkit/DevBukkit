@@ -7,6 +7,7 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityListener;
 
 /**
@@ -67,6 +68,17 @@ public class DevEntityListener extends EntityListener {
     }
 
     public void onEntityDamage(EntityDamageEvent event) {
+        if(plugin.debug(event.getClass())){
+            System.out.println(plugin.debugString(event));
+        }
+        if(event.getEntity() instanceof Player){
+            if(plugin.isGod((Player) event.getEntity())){
+                event.setCancelled(true);
+            }
+        }
+    }
+    
+    public void onEntityExplode(EntityExplodeEvent event) {
         if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }

@@ -20,6 +20,7 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
@@ -53,6 +54,8 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private void initialiseEventAliases() {
+        //eventAliases.put("Event", Event.class);
+        eventAliases.put("Entity", EntityEvent.class);
         eventAliases.put("EntityDBB", EntityDamageByBlockEvent.class);
         eventAliases.put("EntityDBE", EntityDamageByEntityEvent.class);
         eventAliases.put("EntityDBP", EntityDamageByProjectileEvent.class);
@@ -100,10 +103,10 @@ public class DevBukkit extends JavaPlugin {
                             return false;
                         }
                     }
-                } else if (split[1].startsWith("event")) {
-                    if (split[1].equalsIgnoreCase("events")) {
-                        printEventAliases(player);
-                    } else if(split.length > 2 && eventAliases.containsKey(split[2])){
+                } else if (split[1].equalsIgnoreCase("events")) {
+                    printEventAliases(player);
+                } else if (split[1].equalsIgnoreCase("event")) {
+                     if(split.length > 2 && eventAliases.containsKey(split[2])){
                          Class<?> eventClass = eventAliases.get(split[2]);
                          if(split.length < 4){
                              return false;
@@ -252,10 +255,16 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private boolean defaultee(Class<?> eventClass) {
-        return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true;
+        if(eventClass.getSuperclass() != null){
+            return defaultee(eventClass.getSuperclass())
+                && debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true;
+        } else {
+            return true;
+        }
     }
 
     public boolean debug(Class<?> eventClass) {
-        return !debugKill && (defaultee(eventClass) && debugGlobal) || (!defaultee(eventClass) && debugPrivate(eventClass));
+        boolean defaulting = defaultee(eventClass);
+        return !debugKill && (defaulting && debugGlobal) || (!defaulting && debugPrivate(eventClass));
     }
 }

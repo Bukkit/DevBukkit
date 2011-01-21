@@ -134,7 +134,7 @@ public class DevBukkit extends JavaPlugin {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode off.");
                             setDebugMode(false);
                         } else if(split.length > 2 && eventAliases.containsKey(split[1].toLowerCase())){
-                            Class<?> eventClass = eventAliases.get(split[1]);
+                            Class<?> eventClass = eventAliases.get(split[1].toLowerCase());
                             boolean priv = false;
                             if(split.length > 3 && split[3].equalsIgnoreCase("p")){
                                 priv = true;
@@ -153,7 +153,11 @@ public class DevBukkit extends JavaPlugin {
                         }
                     }
                 } else if (split[0].equalsIgnoreCase("help")) {
-                    printHelp(player);
+                    if(split.length > 1 && eventAliases.containsKey(split[1].toLowerCase())){
+                        printHelp(player, eventAliases.get(split[1].toLowerCase()));
+                    } else {
+                        printHelp(player);
+                    }
                 } else if (split[0].equalsIgnoreCase("god")) {
                     if (split.length == 1) {
                         player.sendMessage(ChatColor.RED + "Dev: god mode "+(godModeToggle(player)?"on":"off")+".");
@@ -182,9 +186,25 @@ public class DevBukkit extends JavaPlugin {
     }
     
     private void printHelp(Player player) {
-        player.sendMessage(ChatColor.RED + "== Dev Help ==");
+        player.sendMessage(ChatColor.GOLD + "== Dev Help ==");
+        player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE "+(isGod(player)?"ON":"OFF"));
+        player.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE "+(debugGlobal?"ON":"OFF"));
+        Class<?> topLevelClass = BlockEvent.class;
+        player.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "block -> " + topLevelClass.getSimpleName());
+        topLevelClass = EntityEvent.class;
+        player.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "entity -> " + topLevelClass.getSimpleName());
+        player.sendMessage("Use help <name> to get help on a specific event. ");
+        
+    }
+    
+    private void printHelp(Player player, Class<?> eventClass) {
+        player.sendMessage(ChatColor.GOLD + "== Dev Help ==");
+        player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE "+(isGod(player)?"ON":"OFF"));
+        player.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE "+(debugGlobal?"ON":"OFF"));
         for(Entry<String, Class<?>> entry : eventAliases.entrySet()){
-            player.sendMessage((debug(entry.getValue())?ChatColor.GREEN:ChatColor.RED) + entry.getKey() + " -> " + entry.getValue().getSimpleName());
+            if(eventClass.isAssignableFrom(entry.getValue())){
+                player.sendMessage((debug(entry.getValue())?ChatColor.GREEN:ChatColor.RED) + entry.getKey() + " -> " + entry.getValue().getSimpleName());
+            }
         }
     }
 

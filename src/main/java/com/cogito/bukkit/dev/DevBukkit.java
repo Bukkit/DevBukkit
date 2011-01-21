@@ -13,6 +13,17 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
+import org.bukkit.event.block.BlockCanBuildEvent;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockInteractEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.block.BlockRightClickEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -34,6 +45,7 @@ import org.bukkit.command.Command;
  */
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
+    private final DevBlockListener blockListener = new DevBlockListener(this);
     private boolean debugGlobal;
     private Map<Class<?>, Boolean> debugDefaultees;
     private Map<Class<?>, Boolean> debugPrivates;
@@ -48,6 +60,8 @@ public class DevBukkit extends JavaPlugin {
         gods = new HashMap<Player, Boolean>();
         eventAliases = new TreeMap<String, Class<?>>();
         initialiseEventAliases();
+        setDebugMode(EntityEvent.class,false,false);
+        setDebugMode(BlockEvent.class,false,false);
     }
 
     private void initialiseEventAliases() {
@@ -60,6 +74,18 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("entitydbp", EntityDamageByProjectileEvent.class);
         eventAliases.put("entityd", EntityDamageEvent.class);
         eventAliases.put("entitye", EntityExplodeEvent.class);
+        //block event aliases
+        eventAliases.put("block", BlockEvent.class);
+        eventAliases.put("blockd", BlockDamageEvent.class);
+        eventAliases.put("blockcb", BlockCanBuildEvent.class);
+        eventAliases.put("blockft", BlockFromToEvent.class);
+        eventAliases.put("blockig", BlockIgniteEvent.class);
+        eventAliases.put("blockin", BlockInteractEvent.class);
+        eventAliases.put("blockph", BlockPhysicsEvent.class);
+        eventAliases.put("blockpl", BlockPlaceEvent.class);
+        eventAliases.put("blockred", BlockRedstoneEvent.class);
+        eventAliases.put("blockrc", BlockRightClickEvent.class);
+        eventAliases.put("leavesd", LeavesDecayEvent.class);
     }
 
     public void onDisable() {
@@ -68,12 +94,23 @@ public class DevBukkit extends JavaPlugin {
 
     public void onEnable() {
         PluginManager pm = getServer().getPluginManager();
+        //entity events
         pm.registerEvent(Event.Type.ENTITY_COMBUST, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGED, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_BLOCK, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_ENTITY, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_PROJECTILE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
+        
+        //block events
+        pm.registerEvent(Event.Type.BLOCK_CANBUILD, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_DAMAGED, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_FLOW, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_IGNITE, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_INTERACT, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_PHYSICS, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_PLACED, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Normal, this);
         
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();
@@ -183,6 +220,34 @@ public class DevBukkit extends JavaPlugin {
         return gods.containsKey(player)?gods.get(player):false;
     }
 
+    private void setDebugMode(Class<?> eventClass, boolean debug, boolean priv){
+        if(priv){
+            debugPrivates.put(eventClass, Boolean.valueOf(debug));
+        } else {
+            debugDefaultees.put(eventClass, Boolean.valueOf(debug));
+            debugPrivates.remove(eventClass);
+        }
+        if(debug){
+            debugGlobal = true;
+        }
+    }
+
+    private boolean defaultee(Class<?> eventClass) {
+        if(eventClass.getSuperclass() != null){
+            return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true &&
+                   defaultee(eventClass.getSuperclass());
+        } else {
+            return true;
+        }
+    }
+
+    public boolean debug(Class<?> eventClass) {
+        // if debug killed, return false.
+        // if a private debug setting is set, return that value;
+        // otherwise, recursively check the default value and return if all super defaults are on.
+        return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):defaultee(eventClass)):false;
+    }
+
     public String debugString(EntityDamageByBlockEvent event){
         return
             event.getCause() + "("+event.getDamage()+"): "
@@ -230,7 +295,7 @@ public class DevBukkit extends JavaPlugin {
             + "["+event.getEntity().getEntityId()+"]"
             + " was damaged.";
     }
-    
+
     public String debugString(EntityExplodeEvent event) {
         return 
             event.getType() + ": "
@@ -239,31 +304,10 @@ public class DevBukkit extends JavaPlugin {
             + " exploded.";
     }
 
-    private void setDebugMode(Class<?> eventClass, boolean debug, boolean priv){
-        if(priv){
-            debugPrivates.put(eventClass, Boolean.valueOf(debug));
-        } else {
-            debugDefaultees.put(eventClass, Boolean.valueOf(debug));
-            debugPrivates.remove(eventClass);
-        }
-        if(debug){
-            debugGlobal = true;
-        }
-    }
-
-    private boolean defaultee(Class<?> eventClass) {
-        if(eventClass.getSuperclass() != null){
-            return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true &&
-                   defaultee(eventClass.getSuperclass());
-        } else {
-            return true;
-        }
-    }
-
-    public boolean debug(Class<?> eventClass) {
-        // if debug killed, return false.
-        // if a private debug setting is set, return that value;
-        // otherwise, recursively check the default value and return if all super defaults are on.
-        return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):defaultee(eventClass)):false;
+    public String debugString(BlockEvent event) {
+        return
+            event.getEventName()+" ["+event.getType()+"] "
+            + "("+event.getBlock().getX()+" "+event.getBlock().getY()+" "+event.getBlock().getZ()+") "
+            + event.getBlock().getType();
     }
 }

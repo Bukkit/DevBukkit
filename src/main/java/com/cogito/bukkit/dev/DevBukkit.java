@@ -120,29 +120,29 @@ public class DevBukkit extends JavaPlugin {
     public boolean onCommand(Player player, Command command, String commandLabel, String[] args) {
         String[] split = args;
         if (command.getName().equalsIgnoreCase("dev")) {
-            if (split.length > 1) {
-                if (split[1].equalsIgnoreCase("debug")) {
-                    if (split.length == 2) {
+            if (split.length > 0) {
+                if (split[0].equalsIgnoreCase("debug") || split[0].equalsIgnoreCase("d")) {
+                    if (split.length == 1) {
                         player.sendMessage(ChatColor.RED + "Dev: debug mode toggle.");
                         debugModeToggle();
-                    } else if (split.length >= 3) {
-                        if (split[2].equalsIgnoreCase("on")) {
+                    } else if (split.length >= 2) {
+                        if (split[1].equalsIgnoreCase("on")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode on.");
                             setDebugMode(true);
-                        } else if (split[2].equalsIgnoreCase("off")) {
+                        } else if (split[1].equalsIgnoreCase("off")) {
                             player.sendMessage(ChatColor.RED + "Dev: debug mode off.");
                             setDebugMode(false);
-                        } else if(split.length > 3 && eventAliases.containsKey(split[2].toLowerCase())){
-                            Class<?> eventClass = eventAliases.get(split[2]);
+                        } else if(split.length > 2 && eventAliases.containsKey(split[1].toLowerCase())){
+                            Class<?> eventClass = eventAliases.get(split[1]);
                             boolean priv = false;
-                            if(split.length > 4 && split[4].equalsIgnoreCase("p")){
+                            if(split.length > 3 && split[3].equalsIgnoreCase("p")){
                                 priv = true;
                             } 
-                            if (split[3].equalsIgnoreCase("on")) {
-                                player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode on"+(priv?" (private).":"."));
+                            if (split[2].equalsIgnoreCase("on")) {
+                                player.sendMessage(ChatColor.RED + "Dev: event "+split[1]+" debug mode on"+(priv?" (private).":"."));
                                 setDebugMode(eventClass, true, priv);
-                            } else if (split[3].equalsIgnoreCase("off")) {
-                                player.sendMessage(ChatColor.RED + "Dev: event "+split[2]+" debug mode off"+(priv?" (private).":"."));
+                            } else if (split[2].equalsIgnoreCase("off")) {
+                                player.sendMessage(ChatColor.RED + "Dev: event "+split[1]+" debug mode off"+(priv?" (private).":"."));
                                 setDebugMode(eventClass, false, priv);
                             } else {
                                 return false;
@@ -151,17 +151,17 @@ public class DevBukkit extends JavaPlugin {
                             return false;
                         }
                     }
-                } else if (split[1].equalsIgnoreCase("help")) {
+                } else if (split[0].equalsIgnoreCase("help")) {
                     printHelp(player);
-                } else if (split[1].equalsIgnoreCase("god")) {
-                    if (split.length == 2) {
+                } else if (split[0].equalsIgnoreCase("god")) {
+                    if (split.length == 1) {
                         player.sendMessage(ChatColor.RED + "Dev: god mode "+(godModeToggle(player)?"on":"off")+".");
-                    } else if (split.length == 3) {
-                        if (split[2].equalsIgnoreCase("on")) {
+                    } else if (split.length == 2) {
+                        if (split[1].equalsIgnoreCase("on")) {
                             if(setGodMode(player, true)){
                                 player.sendMessage(ChatColor.RED + "Dev: god mode on.");
                             }
-                        } else if (split[2].equalsIgnoreCase("off")) {
+                        } else if (split[1].equalsIgnoreCase("off")) {
                             if(setGodMode(player, false)){
                                 player.sendMessage(ChatColor.RED + "Dev: god mode off.");
                             }

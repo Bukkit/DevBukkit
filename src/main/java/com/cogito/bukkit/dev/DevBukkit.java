@@ -111,6 +111,7 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.BLOCK_PHYSICS, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_PLACED, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.LEAVES_DECAY, blockListener, Priority.Normal, this);
         
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();

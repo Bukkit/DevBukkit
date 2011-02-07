@@ -126,7 +126,7 @@ public class DevBukkit extends JavaPlugin {
         String commandName = command.getName().toLowerCase();
         
         Player player = null;
-        if (sender.isPlayer()) {
+        if (sender instanceof Player) {
             player = (Player)sender;
         } else if (args.length > 0){
             // Assume first parameter of args is a player and remove it. null if player not found. 
@@ -196,6 +196,13 @@ public class DevBukkit extends JavaPlugin {
                         return false;
                     }
                 }
+            } else if (args[0].equalsIgnoreCase("getdata") && player != null) {
+                debugMessage("Item name: " + player.getItemInHand().getType());
+                debugMessage("Item ID: " + player.getItemInHand().getTypeId());
+                debugMessage("Item count: " + player.getItemInHand().getAmount());
+                debugMessage("Item data: " + player.getItemInHand().getDurability());
+                int maxStackSize = player.getItemInHand().getTypeId() == 0 ? 1 : player.getItemInHand().getMaxStackSize();
+                debugMessage("Item max stack size: " + maxStackSize);
             } else{
                 return false;
             }
@@ -226,11 +233,15 @@ public class DevBukkit extends JavaPlugin {
 
     private void printHelpHeader(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "== Dev Help ==");
-        if(sender.isPlayer()){
+        if(sender instanceof Player){
             Player player = (Player)sender;
             player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE "+(isGod(player)?"ON":"OFF"));
         }
         sender.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE "+(debugGlobal?"ON":"OFF"));
+    }
+    
+    public void debugMessage(String string) {
+        System.out.println(string);
     }
 
     private void debugModeToggle() {

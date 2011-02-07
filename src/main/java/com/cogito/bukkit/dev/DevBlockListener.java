@@ -105,6 +105,13 @@ public class DevBlockListener extends BlockListener {
      * @param event Relevant event details
      */
     public void onBlockRightClick(BlockRightClickEvent event) {
+        if (event.getItemInHand().getTypeId() == 341) {
+            plugin.debugMessage("Block name: " + event.getBlock().getType());
+            plugin.debugMessage("Block location: " + event.getBlock().getX() + ", " + event.getBlock().getY() + ", " + event.getBlock().getZ());
+            plugin.debugMessage("Block data: " + event.getBlock().getData());
+            plugin.debugMessage("Block LightLevel: " + event.getBlock().getLightLevel());
+            plugin.debugMessage("Block Chunk: " + event.getBlock().getChunk().toString());
+        }
         if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }

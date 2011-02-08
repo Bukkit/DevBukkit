@@ -13,6 +13,7 @@ import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
+import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockEvent;
@@ -87,6 +88,7 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("blockred", BlockRedstoneEvent.class);
         eventAliases.put("blockrc", BlockRightClickEvent.class);
         eventAliases.put("leavesd", LeavesDecayEvent.class);
+        eventAliases.put("blockb", BlockBurnEvent.class);
     }
 
     public void onDisable() {

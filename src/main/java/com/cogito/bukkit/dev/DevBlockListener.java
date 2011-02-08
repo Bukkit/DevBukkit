@@ -1,5 +1,6 @@
 package com.cogito.bukkit.dev;
 
+import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockFromToEvent;
@@ -128,6 +129,12 @@ public class DevBlockListener extends BlockListener {
      * @param event Relevant event details
      */
     public void onLeavesDecay(LeavesDecayEvent event) {
+        if(plugin.debug(event.getClass())){
+            System.out.println(plugin.debugString(event));
+        }
+    }
+    
+    public void onBlockBurn(BlockBurnEvent event) {
         if(plugin.debug(event.getClass())){
             System.out.println(plugin.debugString(event));
         }

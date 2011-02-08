@@ -10,9 +10,11 @@ import java.util.TreeMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockDamageEvent;
@@ -30,12 +32,15 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -74,8 +79,10 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("entitydbb", EntityDamageByBlockEvent.class);
         eventAliases.put("entitydbe", EntityDamageByEntityEvent.class);
         eventAliases.put("entitydbp", EntityDamageByProjectileEvent.class);
-        eventAliases.put("entityd", EntityDamageEvent.class);
+        eventAliases.put("entityda", EntityDamageEvent.class);
+        eventAliases.put("entityde", EntityDeathEvent.class);
         eventAliases.put("entitye", EntityExplodeEvent.class);
+        eventAliases.put("entityt", EntityTargetEvent.class);
         //block event aliases
         eventAliases.put("block", BlockEvent.class);
         eventAliases.put("blockd", BlockDamageEvent.class);
@@ -88,11 +95,12 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("blockred", BlockRedstoneEvent.class);
         eventAliases.put("blockrc", BlockRightClickEvent.class);
         eventAliases.put("leavesd", LeavesDecayEvent.class);
-        eventAliases.put("blockb", BlockBurnEvent.class);
+        eventAliases.put("blockbu", BlockBurnEvent.class);
+        eventAliases.put("blockbr", BlockBreakEvent.class);
     }
 
     public void onDisable() {
-        PluginManager pm = getServer().getPluginManager();
+        //PluginManager pm = getServer().getPluginManager();
     }
 
     public void onEnable() {
@@ -104,6 +112,7 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_ENTITY, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_PROJECTILE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Priority.Normal, this);
         
         //block events
         pm.registerEvent(Event.Type.BLOCK_CANBUILD, blockListener, Priority.Normal, this);
@@ -115,6 +124,8 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.BLOCK_PLACED, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.LEAVES_DECAY, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_BURN, blockListener, Priority.Normal, this);
         
         // EXAMPLE: Custom code, here we just output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();
@@ -244,6 +255,51 @@ public class DevBukkit extends JavaPlugin {
         System.out.println(string);
     }
 
+    public void debugMessage(Event event) {
+        if(debug(event.getClass())){
+            System.out.println(debugString(event));
+        }
+    }
+
+    private String debugString(Event event) {
+        Event e = event;
+        String message = e.getClass().getSimpleName()+" ["+e.getType()+"]";
+        if (e instanceof BlockEvent) {
+            message += " ("+((BlockEvent) e).getBlock().getX()+" "+((BlockEvent) e).getBlock().getY()+" "+((BlockEvent) e).getBlock().getZ()+") "
+                     + ((BlockEvent) e).getBlock().getType();
+        } else
+        if (e instanceof EntityEvent) {
+            message += " "+((EntityEvent) e).getEntity().getClass().getSimpleName()
+                     + "["+((EntityEvent) e).getEntity().getEntityId()+"]";
+            if (e instanceof EntityExplodeEvent) {
+                message += " exploded";
+            } else if (e instanceof EntityCombustEvent) {
+                message += " caught fire";
+            } else if (e instanceof EntityDeathEvent) {
+                message += " died";
+            } else if (e instanceof EntityTargetEvent) {
+                Entity target = ((EntityTargetEvent) e).getTarget();
+                message += " has targeted " + target.getClass().getSimpleName()+"["+target.getEntityId()+"]"
+                         + " ("+((EntityTargetEvent) e).getReason()+")";
+            } else if (e instanceof EntityDamageEvent) {
+                message += " was damaged";
+                if (e instanceof EntityDamageByBlockEvent) {
+                    Block block = ((EntityDamageByBlockEvent) event).getDamager();
+                    message += " by "+((block == null)?"'null'":"a block of "+block.getClass().getSimpleName());
+                } else if (e instanceof EntityDamageByEntityEvent) {
+                    Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+                    message += " by ";
+                    if (e instanceof EntityDamageByProjectileEvent) {
+                        message += "a projectile ("+((EntityDamageByProjectileEvent) e).getProjectile().getClass().getSimpleName()+") from ";
+                    }
+                    message += damager.getClass().getSimpleName()+"["+damager.getEntityId()+"]";
+                }
+            }
+        }
+        message += ".";
+        return message;
+    }
+
     private void debugModeToggle() {
         if(debugGlobal){
             setDebugMode(false);
@@ -273,6 +329,12 @@ public class DevBukkit extends JavaPlugin {
         }
     }
 
+    /**
+     * If this player is a DevGod.
+     * 
+     * @param player the Player to check
+     * @return if this Player is a DevGod
+     */
     public boolean isGod(Player player) {
         return gods.containsKey(player)?gods.get(player):false;
     }
@@ -298,73 +360,10 @@ public class DevBukkit extends JavaPlugin {
         }
     }
 
-    public boolean debug(Class<?> eventClass) {
+    private boolean debug(Class<?> eventClass) {
         // if debug killed, return false.
         // if a private debug setting is set, return that value;
         // otherwise, recursively check the default value and return if all super defaults are on.
         return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):defaultee(eventClass)):false;
-    }
-
-    public String debugString(EntityDamageByBlockEvent event){
-        return
-            event.getCause() + "("+event.getDamage()+"): "
-            + event.getEntity().getClass().getSimpleName()
-            + "["+event.getEntity().getEntityId()+"]"
-            + " was damaged by block "
-            + ((event.getDamager() == null)?"null":event.getDamager().getClass().getSimpleName())
-            + ".";
-    }
-
-    public String debugString(EntityDamageByEntityEvent event){
-        return
-            event.getCause() + "("+event.getDamage()+"): "
-            + event.getEntity().getClass().getSimpleName()
-            + "["+event.getEntity().getEntityId()+"]"
-            + " was damaged by "
-            + event.getDamager().getClass().getSimpleName()
-            + "["+event.getDamager().getEntityId()+"]"
-            + ".";
-    }
-
-    public String debugString(EntityDamageByProjectileEvent event) {
-        return 
-            event.getCause() + "("+event.getDamage()+"): "
-            + event.getEntity().getClass().getSimpleName()
-            + "["+event.getEntity().getEntityId()+"]"
-            + " was damaged by a projectile ("
-            + event.getDamager().getClass().getSimpleName()
-            + "["+event.getDamager().getEntityId()+"]"
-            + ").";
-    }
-
-    public String debugString(EntityCombustEvent event) {
-        return 
-            event.getType() + ": "
-            + event.getEntity().getClass().getSimpleName()
-            + "["+event.getEntity().getEntityId()+"]"
-            + " caught fire.";
-    }
-
-    public String debugString(EntityDamageEvent event) {
-        return 
-            event.getCause() + "("+event.getDamage()+"): "
-            + event.getEntity().getClass().getSimpleName()
-            + "["+event.getEntity().getEntityId()+"]"
-            + " was damaged.";
-    }
-
-    public String debugString(EntityExplodeEvent event) {
-        return 
-            event.getType() + ": "
-            + event.getEntity().getClass().getSimpleName()
-            + "["+event.getEntity().getEntityId()+"]"
-            + " exploded.";
-    }
-
-    public String debugString(BlockEvent event) {
-        return
-            event.getEventName()+" ["+event.getType()+"] "
-            + "("+event.getBlock().getX()+" "+event.getBlock().getY()+" "+event.getBlock().getZ()+") "
-            + event.getBlock().getType();
     }
 }

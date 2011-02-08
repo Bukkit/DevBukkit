@@ -7,8 +7,11 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByProjectileEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityListener;
+import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
 
 /**
  * Handle all Player related events
@@ -23,9 +26,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
-        if(plugin.debug(event.getClass())){
-            System.out.println(plugin.debugString(event));
-        }
+        plugin.debugMessage(event);
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
@@ -35,9 +36,7 @@ public class DevEntityListener extends EntityListener {
     }
 
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        if(plugin.debug(event.getClass())){
-            System.out.println(plugin.debugString(event));
-        }
+        plugin.debugMessage(event);
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
@@ -46,9 +45,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityDamageByProjectile(EntityDamageByProjectileEvent event) {
-        if(plugin.debug(event.getClass())){
-            System.out.println(plugin.debugString(event));
-        }
+        plugin.debugMessage(event);
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
@@ -57,9 +54,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityCombust(EntityCombustEvent event) {
-        if(plugin.debug(event.getClass())){
-            System.out.println(plugin.debugString(event));
-        }
+        plugin.debugMessage(event);
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
@@ -68,9 +63,7 @@ public class DevEntityListener extends EntityListener {
     }
 
     public void onEntityDamage(EntityDamageEvent event) {
-        if(plugin.debug(event.getClass())){
-            System.out.println(plugin.debugString(event));
-        }
+        plugin.debugMessage(event);
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
@@ -79,9 +72,7 @@ public class DevEntityListener extends EntityListener {
     }
     
     public void onEntityExplode(EntityExplodeEvent event) {
-        if(plugin.debug(event.getClass())){
-            System.out.println(plugin.debugString(event));
-        }
+        plugin.debugMessage(event);
         if(event.getEntity() instanceof Player){
             if(plugin.isGod((Player) event.getEntity())){
                 event.setCancelled(true);
@@ -89,5 +80,16 @@ public class DevEntityListener extends EntityListener {
         }
     }
 
-    
+    public void onEntityDeath(EntityDeathEvent event) {
+        plugin.debugMessage(event);
+    }
+
+    public void onEntityTarget(EntityTargetEvent event) {
+        plugin.debugMessage(event);
+        if(event.getEntity() instanceof Player){
+            if(plugin.isGod((Player) event.getEntity()) && event.getReason() != TargetReason.TARGET_ATTACKED_ENTITY){
+                event.setCancelled(true);
+            }
+        }
+    }
 }

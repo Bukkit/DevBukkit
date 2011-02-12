@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -36,6 +37,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
@@ -54,16 +56,25 @@ public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
     private final DevBlockListener blockListener = new DevBlockListener(this);
     private boolean debugGlobal;
-    private Map<Class<?>, Boolean> debugDefaultees;
     private Map<Class<?>, Boolean> debugPrivates;
+    private Map<Class<?>, Boolean> debugDefaultees;
+    private boolean cancelGlobal;
+    private Map<Class<?>, Boolean> cancelPrivates;
+    private Map<Class<?>, Boolean> cancelDefaultees;
     private Map<Player, Boolean> gods;
     private SortedMap<String, Class<?>> eventAliases;
 
     public DevBukkit(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
         super(pluginLoader, instance, desc, folder, plugin, cLoader);
+
         debugGlobal = false;
         debugDefaultees = new HashMap<Class<?>, Boolean>();
         debugPrivates = new HashMap<Class<?>, Boolean>();
+
+        cancelGlobal = false;
+        cancelDefaultees = new HashMap<Class<?>, Boolean>();
+        cancelPrivates = new HashMap<Class<?>, Boolean>();
+
         gods = new HashMap<Player, Boolean>();
         eventAliases = new TreeMap<String, Class<?>>();
         initialiseEventAliases();
@@ -157,14 +168,14 @@ public class DevBukkit extends JavaPlugin {
         if (args.length > 0) {
             if (args[0].equalsIgnoreCase("debug") || args[0].equalsIgnoreCase("d")) {
                 if (args.length == 1) {
-                    sender.sendMessage(ChatColor.RED + "Dev: debug mode toggle.");
+                    infoMessage(sender, "Debug mode toggle.");
                     debugModeToggle();
                 } else if (args.length >= 2) {
                     if (args[1].equalsIgnoreCase("on")) {
-                        sender.sendMessage(ChatColor.RED + "Dev: debug mode on.");
+                        infoMessage(sender, "Debug mode on.");
                         setDebugMode(true);
                     } else if (args[1].equalsIgnoreCase("off")) {
-                        sender.sendMessage(ChatColor.RED + "Dev: debug mode off.");
+                        infoMessage(sender, "Debug mode off.");
                         setDebugMode(false);
                     } else if(args.length > 2 && eventAliases.containsKey(args[1].toLowerCase())){
                         Class<?> eventClass = eventAliases.get(args[1].toLowerCase());
@@ -173,11 +184,41 @@ public class DevBukkit extends JavaPlugin {
                             priv = true;
                         } 
                         if (args[2].equalsIgnoreCase("on")) {
-                            sender.sendMessage(ChatColor.RED + "Dev: event "+args[1]+" debug mode on"+(priv?" (private).":"."));
+                            infoMessage(sender, "Event "+args[1]+" debug mode on"+(priv?" (private).":"."));
                             setDebugMode(eventClass, true, priv);
                         } else if (args[2].equalsIgnoreCase("off")) {
-                            sender.sendMessage(ChatColor.RED + "Dev: event "+args[1]+" debug mode off"+(priv?" (private).":"."));
+                            infoMessage(sender, "Event "+args[1]+" debug mode off"+(priv?" (private).":"."));
                             setDebugMode(eventClass, false, priv);
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                }
+            } else if (args[0].equalsIgnoreCase("cancel") || args[0].equalsIgnoreCase("c")) {
+                if (args.length == 1) {
+                    infoMessage(sender, "Cancel mode toggle.");
+                    cancelModeToggle();
+                } else if (args.length >= 2) {
+                    if (args[1].equalsIgnoreCase("on")) {
+                        infoMessage(sender, "Cancel mode on.");
+                        setCancelMode(true);
+                    } else if (args[1].equalsIgnoreCase("off")) {
+                        infoMessage(sender, "Cancel mode off.");
+                        setCancelMode(false);
+                    } else if(args.length > 2 && eventAliases.containsKey(args[1].toLowerCase())){
+                        Class<?> eventClass = eventAliases.get(args[1].toLowerCase());
+                        boolean priv = false;
+                        if(args.length > 3 && args[3].equalsIgnoreCase("p")){
+                            priv = true;
+                        } 
+                        if (args[2].equalsIgnoreCase("on")) {
+                            infoMessage(sender, "Event "+args[1]+" cancel mode on"+(priv?" (private).":"."));
+                            setCancelMode(eventClass, true, priv);
+                        } else if (args[2].equalsIgnoreCase("off")) {
+                            infoMessage(sender, "Event "+args[1]+" cancel mode off"+(priv?" (private).":"."));
+                            setCancelMode(eventClass, false, priv);
                         } else {
                             return false;
                         }
@@ -193,19 +234,21 @@ public class DevBukkit extends JavaPlugin {
                 }
             } else if (args[0].equalsIgnoreCase("god") && player != null) {
                 if (args.length == 1) {
-                    sender.sendMessage(ChatColor.RED + "Dev: god mode "+(godModeToggle(player)?"on":"off")+".");
+                    infoMessage(sender, "God mode "+(godModeToggle(player)?"on":"off")+".");
                 } else if (args.length == 2) {
                     if (args[1].equalsIgnoreCase("on")) {
                         if(setGodMode(player, true)){
-                            sender.sendMessage(ChatColor.RED + "Dev: god mode on.");
+                            infoMessage(sender, "God mode on.");
                         }
                     } else if (args[1].equalsIgnoreCase("off")) {
                         if(setGodMode(player, false)){
-                            sender.sendMessage(ChatColor.RED + "Dev: god mode off.");
+                            infoMessage(sender, "God mode off.");
                         }
                     } else {
                         return false;
                     }
+                } else {
+                    return false;
                 }
             } else if (args[0].equalsIgnoreCase("getdata") && player != null) {
                 debugMessage("Item name: " + player.getItemInHand().getType());
@@ -222,6 +265,10 @@ public class DevBukkit extends JavaPlugin {
         }
         return true;
     }
+
+    private void infoMessage(CommandSender sender, String message) {
+        sender.sendMessage(ChatColor.RED + "Dev: " + message);
+    }
     
     private void printHelp(CommandSender sender) {
         printHelpHeader(sender);
@@ -237,7 +284,9 @@ public class DevBukkit extends JavaPlugin {
         printHelpHeader(sender);
         for(Entry<String, Class<?>> entry : eventAliases.entrySet()){
             if(eventClass.isAssignableFrom(entry.getValue())){
-                sender.sendMessage((debug(entry.getValue())?ChatColor.GREEN:ChatColor.RED) + entry.getKey() + " -> " + entry.getValue().getSimpleName());
+                sender.sendMessage((debug(entry.getValue())?ChatColor.GREEN:ChatColor.RED)+"D "
+                                  +(cancel(entry.getValue())?ChatColor.GREEN:ChatColor.RED)+"C | "
+                                  +ChatColor.WHITE+entry.getKey() + " -> " + entry.getValue().getSimpleName());
             }
         }
     }
@@ -249,6 +298,7 @@ public class DevBukkit extends JavaPlugin {
             player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE "+(isGod(player)?"ON":"OFF"));
         }
         sender.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE "+(debugGlobal?"ON":"OFF"));
+        sender.sendMessage((cancelGlobal?ChatColor.GREEN:ChatColor.RED) + "CANCEL MODE "+(cancelGlobal?"ON":"OFF"));
     }
     
     public void debugMessage(String string) {
@@ -258,6 +308,44 @@ public class DevBukkit extends JavaPlugin {
     public void debugMessage(Event event) {
         if(debug(event.getClass())){
             debugMessage(debugString(event));
+        }
+    }
+
+    public void cancelEvent(Event event){
+        if (cancel(event.getClass())) {
+            ((Cancellable) event).setCancelled(true);
+        }
+    }
+    /**
+     * Perform actions for an event depending on the player's god mode status.
+     * @param event
+     */
+    public void godMode(Event event) {
+        if (event instanceof EntityEvent) {
+            Entity entity = ((EntityEvent) event).getEntity();
+            
+            if(event instanceof EntityTargetEvent){
+                if(((EntityTargetEvent) event).getReason() != TargetReason.TARGET_ATTACKED_ENTITY){
+                    // we will cancel target events on god's that didn't start the fight
+                    entity = ((EntityTargetEvent) event).getTarget();
+                    if(entity instanceof Player){
+                        Player player = (Player) entity;
+                        if(isGod(player)){
+                            ((Cancellable) event).setCancelled(true);
+                        }
+                    }
+                }
+            }
+            
+            // affect the player in some way, if god.
+            if(entity instanceof Player){
+                Player player = (Player) entity;
+                if(isGod(player)){
+                    if (event instanceof EntityDamageEvent) {
+                        ((EntityDamageEvent) event).setDamage(0);
+                    }
+                }
+            }
         }
     }
 
@@ -301,18 +389,6 @@ public class DevBukkit extends JavaPlugin {
         return message;
     }
 
-    private void debugModeToggle() {
-        if(debugGlobal){
-            setDebugMode(false);
-        } else{
-            setDebugMode(true);
-        }
-    }
-
-    private void setDebugMode(boolean debug) {
-        this.debugGlobal = debug;
-    }
-
     private boolean godModeToggle(Player player) {
         if(isGod(player)){
             return setGodMode(player, false);
@@ -340,6 +416,21 @@ public class DevBukkit extends JavaPlugin {
         return gods.containsKey(player)?gods.get(player):false;
     }
 
+    private boolean debug(Class<?> eventClass) {
+        // if debug killed, return false.
+        // if a private debug setting is set, return that value;
+        // otherwise, recursively check the default value and return if all super defaults are on.
+        return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):debugDefaultee(eventClass)):false;
+    }
+
+    private void debugModeToggle() {
+        debugGlobal = debugGlobal?false:true;
+    }
+
+    private void setDebugMode(boolean debug) {
+        debugGlobal = debug;
+    }
+
     private void setDebugMode(Class<?> eventClass, boolean debug, boolean priv){
         if(priv){
             debugPrivates.put(eventClass, Boolean.valueOf(debug));
@@ -352,19 +443,49 @@ public class DevBukkit extends JavaPlugin {
         }
     }
 
-    private boolean defaultee(Class<?> eventClass) {
+    private boolean debugDefaultee(Class<?> eventClass) {
         if(eventClass.getSuperclass() != null){
             return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true &&
-                   defaultee(eventClass.getSuperclass());
+                   debugDefaultee(eventClass.getSuperclass());
         } else {
             return true;
         }
     }
 
-    private boolean debug(Class<?> eventClass) {
-        // if debug killed, return false.
-        // if a private debug setting is set, return that value;
-        // otherwise, recursively check the default value and return if all super defaults are on.
-        return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):defaultee(eventClass)):false;
+    private boolean cancel(Class<?> eventClass) {
+        if (Cancellable.class.isAssignableFrom(eventClass)) {
+            return cancelGlobal?(cancelPrivates.containsKey(eventClass)?cancelPrivates.get(eventClass):cancelDefaultee(eventClass)):false;
+        } else {
+            return false;
+        }
+        }
+
+    private void cancelModeToggle() {
+        cancelGlobal = cancelGlobal?false:true;
+    }
+
+    private void setCancelMode(boolean cancel) {
+        this.cancelGlobal = cancel;
+    }
+
+    private void setCancelMode(Class<?> eventClass, boolean cancel, boolean priv) {
+        if(priv){
+            cancelPrivates.put(eventClass, Boolean.valueOf(cancel));
+        } else {
+            cancelDefaultees.put(eventClass, Boolean.valueOf(cancel));
+            cancelPrivates.remove(eventClass);
+        }
+        if(cancel){
+            cancelGlobal = true;
+        }
+    }
+
+    private Boolean cancelDefaultee(Class<?> eventClass) {
+        if(eventClass.getSuperclass() != null){
+            return cancelDefaultees.containsKey(eventClass)?cancelDefaultees.get(eventClass):true &&
+                   cancelDefaultee(eventClass.getSuperclass());
+        } else {
+            return true;
+        }
     }
 }

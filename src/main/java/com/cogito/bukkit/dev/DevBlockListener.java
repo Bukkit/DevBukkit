@@ -23,30 +23,44 @@ public class DevBlockListener extends BlockListener {
 
     public void onBlockDamage(BlockDamageEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockCanBuild(BlockCanBuildEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockFlow(BlockFromToEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockIgnite(BlockIgniteEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockPhysics(BlockPhysicsEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockPlace(BlockPlaceEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockInteract(BlockInteractEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockRightClick(BlockRightClickEvent event) {
@@ -58,22 +72,32 @@ public class DevBlockListener extends BlockListener {
             plugin.debugMessage("Block Chunk: " + event.getBlock().getChunk().toString());
         }
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockRedstoneChange(BlockFromToEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onLeavesDecay(LeavesDecayEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
     
     public void onBlockBurn(BlockBurnEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
     public void onBlockBreak(BlockBreakEvent event) {
         plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
     }
 
 }

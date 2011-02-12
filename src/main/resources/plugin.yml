@@ -9,5 +9,6 @@ commands:
            /<command> debug [on|off] - toggle full debug mode.
            /<command> debug <name> [on|off] [p] - toggle specific debug mode.
                -- if p is specified, this event will act independently of others.
+           /<command> cancel - as for debug. Cancels events if true.
            /<command> help [<name>] - list debug status and command aliases.
            /<command> god [on|off] - toggle god mode.

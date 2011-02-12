@@ -257,7 +257,7 @@ public class DevBukkit extends JavaPlugin {
 
     public void debugMessage(Event event) {
         if(debug(event.getClass())){
-            System.out.println(debugString(event));
+            debugMessage(debugString(event));
         }
     }
 

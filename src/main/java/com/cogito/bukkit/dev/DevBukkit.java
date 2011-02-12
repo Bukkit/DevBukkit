@@ -294,6 +294,7 @@ public class DevBukkit extends JavaPlugin {
                     }
                     message += damager.getClass().getSimpleName()+"["+damager.getEntityId()+"]";
                 }
+                message += " ("+((EntityDamageEvent) event).getCause()+")";
             }
         }
         message += ".";

@@ -1,7 +1,6 @@
 
 package com.cogito.bukkit.dev;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,7 +8,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Server;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -39,7 +37,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.block.Block;
@@ -63,24 +60,6 @@ public class DevBukkit extends JavaPlugin {
     private Map<Class<?>, Boolean> cancelDefaultees;
     private Map<Player, Boolean> gods;
     private SortedMap<String, Class<?>> eventAliases;
-
-    public DevBukkit(PluginLoader pluginLoader, Server instance, PluginDescriptionFile desc, File folder, File plugin, ClassLoader cLoader) {
-        super(pluginLoader, instance, desc, folder, plugin, cLoader);
-
-        debugGlobal = false;
-        debugDefaultees = new HashMap<Class<?>, Boolean>();
-        debugPrivates = new HashMap<Class<?>, Boolean>();
-
-        cancelGlobal = false;
-        cancelDefaultees = new HashMap<Class<?>, Boolean>();
-        cancelPrivates = new HashMap<Class<?>, Boolean>();
-
-        gods = new HashMap<Player, Boolean>();
-        eventAliases = new TreeMap<String, Class<?>>();
-        initialiseEventAliases();
-        setDebugMode(EntityEvent.class,false,false);
-        setDebugMode(BlockEvent.class,false,false);
-    }
 
     private void initialiseEventAliases() {
         //need to be in lower case
@@ -115,13 +94,25 @@ public class DevBukkit extends JavaPlugin {
     }
 
     public void onEnable() {
+        //TODO integrate persistence when we get it
+        debugGlobal = false;
+        debugDefaultees = new HashMap<Class<?>, Boolean>();
+        debugPrivates = new HashMap<Class<?>, Boolean>();
+
+        cancelGlobal = false;
+        cancelDefaultees = new HashMap<Class<?>, Boolean>();
+        cancelPrivates = new HashMap<Class<?>, Boolean>();
+
+        gods = new HashMap<Player, Boolean>();
+        eventAliases = new TreeMap<String, Class<?>>();
+        initialiseEventAliases();
+        setDebugMode(EntityEvent.class,false,false);
+        setDebugMode(BlockEvent.class,false,false);
+        
         PluginManager pm = getServer().getPluginManager();
         //entity events
         pm.registerEvent(Event.Type.ENTITY_COMBUST, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DAMAGED, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_BLOCK, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_ENTITY, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGEDBY_PROJECTILE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Priority.Normal, this);
         
@@ -138,7 +129,7 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BURN, blockListener, Priority.Normal, this);
         
-        // EXAMPLE: Custom code, here we just output some info so we can check all is well
+        // Output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
     }
@@ -311,22 +302,31 @@ public class DevBukkit extends JavaPlugin {
         }
     }
 
+    /**
+     * Checks and cancels an event if it's event class has been specified to be cancelled.
+     * 
+     * @param event The event to check, and cancel if necessary.
+     */
     public void cancelEvent(Event event){
         if (cancel(event.getClass())) {
             ((Cancellable) event).setCancelled(true);
         }
     }
+
     /**
      * Perform actions for an event depending on the player's god mode status.
+     * Any damage event will have the damage set to 0.
+     * 
      * @param event
      */
     public void godMode(Event event) {
         if (event instanceof EntityEvent) {
             Entity entity = ((EntityEvent) event).getEntity();
-            
+
+            // we cancel entities targeting any god that didn't strike first
             if(event instanceof EntityTargetEvent){
                 if(((EntityTargetEvent) event).getReason() != TargetReason.TARGET_ATTACKED_ENTITY){
-                    // we will cancel target events on god's that didn't start the fight
+                    
                     entity = ((EntityTargetEvent) event).getTarget();
                     if(entity instanceof Player){
                         Player player = (Player) entity;

@@ -20,11 +20,9 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockInteractEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
-import org.bukkit.event.block.BlockRightClickEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
@@ -52,6 +50,7 @@ import org.bukkit.command.CommandSender;
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
     private final DevBlockListener blockListener = new DevBlockListener(this);
+    private final DevPlayerListener playerListener = new DevPlayerListener(this);
     private boolean debugGlobal;
     private Map<Class<?>, Boolean> debugPrivates;
     private Map<Class<?>, Boolean> debugDefaultees;
@@ -79,11 +78,9 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("blockcb", BlockCanBuildEvent.class);
         eventAliases.put("blockft", BlockFromToEvent.class);
         eventAliases.put("blockig", BlockIgniteEvent.class);
-        eventAliases.put("blockin", BlockInteractEvent.class);
         eventAliases.put("blockph", BlockPhysicsEvent.class);
         eventAliases.put("blockpl", BlockPlaceEvent.class);
         eventAliases.put("blockred", BlockRedstoneEvent.class);
-        eventAliases.put("blockrc", BlockRightClickEvent.class);
         eventAliases.put("leavesd", LeavesDecayEvent.class);
         eventAliases.put("blockbu", BlockBurnEvent.class);
         eventAliases.put("blockbr", BlockBreakEvent.class);
@@ -110,21 +107,23 @@ public class DevBukkit extends JavaPlugin {
         setDebugMode(BlockEvent.class,false,false);
         
         PluginManager pm = getServer().getPluginManager();
+        
+        // player events
+        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
+        
         //entity events
         pm.registerEvent(Event.Type.ENTITY_COMBUST, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGED, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Priority.Normal, this);
         
         //block events
         pm.registerEvent(Event.Type.BLOCK_CANBUILD, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_DAMAGED, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_FLOW, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_DAMAGE, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_FROMTO, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_IGNITE, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_INTERACT, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_PHYSICS, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_PLACED, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.LEAVES_DECAY, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BURN, blockListener, Priority.Normal, this);

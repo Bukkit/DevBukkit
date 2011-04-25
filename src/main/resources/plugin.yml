@@ -1,6 +1,8 @@
 name: DevBukkit
 main: com.cogito.bukkit.dev.DevBukkit
-version: 0.3
+author: The Bukkit Team
+website: http://bukkit.org
+version: 0.4
 commands:
   dev:
     description: Dev Commands

@@ -1,4 +1,3 @@
-
 package com.cogito.bukkit.dev;
 
 import java.util.HashMap;
@@ -8,11 +7,13 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
@@ -20,11 +21,9 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockInteractEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
-import org.bukkit.event.block.BlockRightClickEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
@@ -36,13 +35,14 @@ import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-
 
 /**
  * Miscellaneous administrative commands
@@ -52,6 +52,7 @@ import org.bukkit.command.CommandSender;
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
     private final DevBlockListener blockListener = new DevBlockListener(this);
+    private final DevPlayerListener playerListener = new DevPlayerListener(this);
     private boolean debugGlobal;
     private Map<Class<?>, Boolean> debugPrivates;
     private Map<Class<?>, Boolean> debugDefaultees;
@@ -64,6 +65,7 @@ public class DevBukkit extends JavaPlugin {
     private void initialiseEventAliases() {
         //need to be in lower case
         //eventAliases.put("Event", Event.class);
+        //entity event aliases
         eventAliases.put("entity", EntityEvent.class);
         eventAliases.put("entityc", EntityCombustEvent.class);
         eventAliases.put("entitydbb", EntityDamageByBlockEvent.class);
@@ -79,14 +81,14 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("blockcb", BlockCanBuildEvent.class);
         eventAliases.put("blockft", BlockFromToEvent.class);
         eventAliases.put("blockig", BlockIgniteEvent.class);
-        eventAliases.put("blockin", BlockInteractEvent.class);
         eventAliases.put("blockph", BlockPhysicsEvent.class);
         eventAliases.put("blockpl", BlockPlaceEvent.class);
         eventAliases.put("blockred", BlockRedstoneEvent.class);
-        eventAliases.put("blockrc", BlockRightClickEvent.class);
         eventAliases.put("leavesd", LeavesDecayEvent.class);
         eventAliases.put("blockbu", BlockBurnEvent.class);
         eventAliases.put("blockbr", BlockBreakEvent.class);
+        //player event aliases
+        eventAliases.put("playerint", PlayerInteractEvent.class);
     }
 
     public void onDisable() {
@@ -108,36 +110,38 @@ public class DevBukkit extends JavaPlugin {
         initialiseEventAliases();
         setDebugMode(EntityEvent.class,false,false);
         setDebugMode(BlockEvent.class,false,false);
-        
+
         PluginManager pm = getServer().getPluginManager();
         //entity events
         pm.registerEvent(Event.Type.ENTITY_COMBUST, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGED, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Priority.Normal, this);
-        
+
         //block events
         pm.registerEvent(Event.Type.BLOCK_CANBUILD, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_DAMAGED, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_FLOW, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_DAMAGE, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_FROMTO, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_IGNITE, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_INTERACT, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_PHYSICS, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_PLACED, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_RIGHTCLICKED, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.LEAVES_DECAY, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BURN, blockListener, Priority.Normal, this);
+
+        //player events
+        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
         
         // Output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
     }
-    
+
+    @Override
     public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
         String[] trimmedArgs = args;
         String commandName = command.getName().toLowerCase();
-        
+
         Player player = null;
         if (sender instanceof Player) {
             player = (Player)sender;
@@ -154,7 +158,7 @@ public class DevBukkit extends JavaPlugin {
         }
         return false;
     }
-    
+
     public boolean parseCommands(CommandSender sender, Player player, String[] args) {
         if (args.length > 0) {
             if (args[0].equalsIgnoreCase("debug") || args[0].equalsIgnoreCase("d")) {
@@ -260,7 +264,7 @@ public class DevBukkit extends JavaPlugin {
     private void infoMessage(CommandSender sender, String message) {
         sender.sendMessage(ChatColor.RED + "Dev: " + message);
     }
-    
+
     private void printHelp(CommandSender sender) {
         printHelpHeader(sender);
         Class<?> topLevelClass = BlockEvent.class;
@@ -270,7 +274,7 @@ public class DevBukkit extends JavaPlugin {
         sender.sendMessage("Use help <name> to get help on a specific event. ");
         
     }
-    
+
     private void printHelp(CommandSender sender, Class<?> eventClass) {
         printHelpHeader(sender);
         for(Entry<String, Class<?>> entry : eventAliases.entrySet()){
@@ -291,7 +295,7 @@ public class DevBukkit extends JavaPlugin {
         sender.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE "+(debugGlobal?"ON":"OFF"));
         sender.sendMessage((cancelGlobal?ChatColor.GREEN:ChatColor.RED) + "CANCEL MODE "+(cancelGlobal?"ON":"OFF"));
     }
-    
+
     public void debugMessage(String string) {
         System.out.println(string);
     }
@@ -336,7 +340,7 @@ public class DevBukkit extends JavaPlugin {
                     }
                 }
             }
-            
+
             // affect the player in some way, if god.
             if(entity instanceof Player){
                 Player player = (Player) entity;
@@ -355,8 +359,7 @@ public class DevBukkit extends JavaPlugin {
         if (e instanceof BlockEvent) {
             message += " ("+((BlockEvent) e).getBlock().getX()+" "+((BlockEvent) e).getBlock().getY()+" "+((BlockEvent) e).getBlock().getZ()+") "
                      + ((BlockEvent) e).getBlock().getType();
-        } else
-        if (e instanceof EntityEvent) {
+        } else if (e instanceof EntityEvent) {
             message += " "+((EntityEvent) e).getEntity().getClass().getSimpleName()
                      + "["+((EntityEvent) e).getEntity().getEntityId()+"]";
             if (e instanceof EntityExplodeEvent) {
@@ -383,6 +386,35 @@ public class DevBukkit extends JavaPlugin {
                     message += damager.getClass().getSimpleName()+"["+damager.getEntityId()+"]";
                 }
                 message += " ("+((EntityDamageEvent) event).getCause()+")";
+            }
+        } else if (e instanceof PlayerEvent) {
+            Player player = ((PlayerEvent) e).getPlayer();
+            message += " "+player.getName();
+            if (e instanceof PlayerInteractEvent) {
+                String itemInHand;
+                if (player.getItemInHand().getType() == Material.AIR) {
+                    itemInHand = "nothing";
+                } else {
+                    itemInHand = player.getItemInHand().getType().toString();
+                }
+
+                if (((PlayerInteractEvent)e).getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
+                    message += " right clicked " + block.getType() + "{" + block.getData() + "} ("
+                            + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with "
+                            + itemInHand + " in hand";
+                } else if (((PlayerInteractEvent)e).getAction() == Action.RIGHT_CLICK_AIR) {
+                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
+                    message += " right clicked AIR with " + itemInHand + " in hand";
+                } else if (((PlayerInteractEvent)e).getAction() == Action.LEFT_CLICK_BLOCK) {
+                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
+                    message += " left clicked " + block.getType() + "{" + block.getData() + "} ("
+                            + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with "
+                            + itemInHand + " in hand";
+                } else if (((PlayerInteractEvent)e).getAction() == Action.LEFT_CLICK_AIR) {
+                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
+                    message += " left clicked AIR with " + itemInHand + " in hand";
+                }
             }
         }
         message += ".";
@@ -458,7 +490,7 @@ public class DevBukkit extends JavaPlugin {
         } else {
             return false;
         }
-        }
+    }
 
     private void cancelModeToggle() {
         cancelGlobal = cancelGlobal?false:true;

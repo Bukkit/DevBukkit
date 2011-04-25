@@ -1,4 +1,3 @@
-
 package com.cogito.bukkit.dev;
 
 import org.bukkit.event.entity.EntityCombustEvent;
@@ -22,7 +21,7 @@ public class DevEntityListener extends EntityListener {
     public DevEntityListener(DevBukkit instance) {
         plugin = instance;
     }
-    
+
     public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);
@@ -34,13 +33,13 @@ public class DevEntityListener extends EntityListener {
         plugin.cancelEvent(event);
         plugin.godMode(event);
     }
-    
+
     public void onEntityDamageByProjectile(EntityDamageByProjectileEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);
         plugin.godMode(event);
     }
-    
+
     public void onEntityCombust(EntityCombustEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);

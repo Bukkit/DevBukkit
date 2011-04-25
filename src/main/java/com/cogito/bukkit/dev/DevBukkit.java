@@ -1,6 +1,8 @@
 package com.cogito.bukkit.dev;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
@@ -43,6 +45,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.util.config.Configuration;
 
 /**
  * Miscellaneous administrative commands
@@ -61,6 +64,8 @@ public class DevBukkit extends JavaPlugin {
     private Map<Class<?>, Boolean> cancelDefaultees;
     private Map<Player, Boolean> gods;
     private SortedMap<String, Class<?>> eventAliases;
+    public static String debugMessageMode;
+    public static String debugTargets;
 
     private void initialiseEventAliases() {
         //need to be in lower case
@@ -88,7 +93,8 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("blockbu", BlockBurnEvent.class);
         eventAliases.put("blockbr", BlockBreakEvent.class);
         //player event aliases
-        eventAliases.put("playerint", PlayerInteractEvent.class);
+        eventAliases.put("player", PlayerEvent.class);
+        eventAliases.put("playeri", PlayerInteractEvent.class);
     }
 
     public void onDisable() {
@@ -131,10 +137,30 @@ public class DevBukkit extends JavaPlugin {
 
         //player events
         pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
-        
+
+        loadConfig();
+        saveConfig();
         // Output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
+    }
+
+    public void loadConfig() {
+        try {
+            Configuration config = this.getConfiguration();
+            debugMessageMode = config.getString("debugMessageMode", "console");
+            debugTargets = config.getString("debugTargets","");
+
+        } catch (Exception e) {
+            getServer().getLogger().severe("Exception while loading DevBukkit/config.yml");
+        }
+    }
+
+    public void saveConfig() {
+        Configuration config = getConfiguration();
+        config.setProperty("debugMessageMode", debugMessageMode);
+        config.setProperty("debugTargets", debugTargets);
+        config.save();
     }
 
     @Override
@@ -249,7 +275,9 @@ public class DevBukkit extends JavaPlugin {
                 debugMessage("Item name: " + player.getItemInHand().getType());
                 debugMessage("Item ID: " + player.getItemInHand().getTypeId());
                 debugMessage("Item count: " + player.getItemInHand().getAmount());
-                debugMessage("Item data: " + player.getItemInHand().getDurability());
+                debugMessage("Item durability: " + player.getItemInHand().getDurability());
+                debugMessage("Item materialdata: " + player.getItemInHand().getData());
+                if (player.getItemInHand().getData() != null) debugMessage("Item data: " + player.getItemInHand().getData().getData());
                 int maxStackSize = player.getItemInHand().getTypeId() == 0 ? 1 : player.getItemInHand().getMaxStackSize();
                 debugMessage("Item max stack size: " + maxStackSize);
             } else{
@@ -271,6 +299,8 @@ public class DevBukkit extends JavaPlugin {
         sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "block -> " + topLevelClass.getSimpleName());
         topLevelClass = EntityEvent.class;
         sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "entity -> " + topLevelClass.getSimpleName());
+        topLevelClass = PlayerEvent.class;
+        sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "player -> " + topLevelClass.getSimpleName());
         sender.sendMessage("Use help <name> to get help on a specific event. ");
         
     }
@@ -297,7 +327,27 @@ public class DevBukkit extends JavaPlugin {
     }
 
     public void debugMessage(String string) {
-        System.out.println(string);
+        if (debugMessageMode.equals("first")) {
+            Player[] players = getServer().getOnlinePlayers();
+
+            Player player = players[0];
+            player.sendMessage(string);
+        } else if (debugMessageMode.equals("all")) {
+            getServer().broadcastMessage(string);
+        }  else if (debugMessageMode.equals("targets")) {
+            String[] tmp = debugTargets.split(",");
+            List<Player> matchedPlayers = new ArrayList<Player>();
+
+            for (String i : tmp) {
+                if (i.equals("")) continue;
+
+                matchedPlayers = getServer().matchPlayer(i);
+                if (matchedPlayers.isEmpty()) continue;
+                matchedPlayers.get(0).sendMessage(string);
+            }
+        } else {
+            System.out.println(string);
+        }
     }
 
     public void debugMessage(Event event) {
@@ -358,7 +408,7 @@ public class DevBukkit extends JavaPlugin {
         String message = e.getClass().getSimpleName()+" ["+e.getType()+"]";
         if (e instanceof BlockEvent) {
             message += " ("+((BlockEvent) e).getBlock().getX()+" "+((BlockEvent) e).getBlock().getY()+" "+((BlockEvent) e).getBlock().getZ()+") "
-                     + ((BlockEvent) e).getBlock().getType();
+                     + ((BlockEvent) e).getBlock().getType() + "{" + ((BlockEvent) e).getBlock().getData() + "}";
         } else if (e instanceof EntityEvent) {
             message += " "+((EntityEvent) e).getEntity().getClass().getSimpleName()
                      + "["+((EntityEvent) e).getEntity().getEntityId()+"]";
@@ -389,31 +439,37 @@ public class DevBukkit extends JavaPlugin {
             }
         } else if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
+            byte itemInHandData;
+            short itemInHandDurability;
             message += " "+player.getName();
             if (e instanceof PlayerInteractEvent) {
                 String itemInHand;
                 if (player.getItemInHand().getType() == Material.AIR) {
                     itemInHand = "nothing";
+                    itemInHandData = -1;
+                    itemInHandDurability = 0;
                 } else {
                     itemInHand = player.getItemInHand().getType().toString();
+                    itemInHandData = player.getItemInHand().getData() != null ? player.getItemInHand().getData().getData() : -1;
+                    itemInHandDurability = player.getItemInHand().getDurability();
                 }
 
                 if (((PlayerInteractEvent)e).getAction() == Action.RIGHT_CLICK_BLOCK) {
                     Block block = ((PlayerInteractEvent)e).getClickedBlock();
                     message += " right clicked " + block.getType() + "{" + block.getData() + "} ("
                             + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with "
-                            + itemInHand + " in hand";
+                            + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
                 } else if (((PlayerInteractEvent)e).getAction() == Action.RIGHT_CLICK_AIR) {
                     Block block = ((PlayerInteractEvent)e).getClickedBlock();
-                    message += " right clicked AIR with " + itemInHand + " in hand";
+                    message += " right clicked AIR with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
                 } else if (((PlayerInteractEvent)e).getAction() == Action.LEFT_CLICK_BLOCK) {
                     Block block = ((PlayerInteractEvent)e).getClickedBlock();
                     message += " left clicked " + block.getType() + "{" + block.getData() + "} ("
                             + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with "
-                            + itemInHand + " in hand";
+                            + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
                 } else if (((PlayerInteractEvent)e).getAction() == Action.LEFT_CLICK_AIR) {
                     Block block = ((PlayerInteractEvent)e).getClickedBlock();
-                    message += " left clicked AIR with " + itemInHand + " in hand";
+                    message += " left clicked AIR with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
                 }
             }
         }

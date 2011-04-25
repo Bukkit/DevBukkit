@@ -45,6 +45,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.util.config.Configuration;
 
 /**
@@ -79,7 +82,10 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("entityda", EntityDamageEvent.class);
         eventAliases.put("entityde", EntityDeathEvent.class);
         eventAliases.put("entitye", EntityExplodeEvent.class);
+        eventAliases.put("entityi", EntityInteractEvent.class);
         eventAliases.put("entityt", EntityTargetEvent.class);
+        eventAliases.put("explosionp", ExplosionPrimeEvent.class); 
+        eventAliases.put("creaturesp",CreatureSpawnEvent.class);
         //block event aliases
         eventAliases.put("block", BlockEvent.class);
         eventAliases.put("blockd", BlockDamageEvent.class);
@@ -116,6 +122,7 @@ public class DevBukkit extends JavaPlugin {
         initialiseEventAliases();
         setDebugMode(EntityEvent.class,false,false);
         setDebugMode(BlockEvent.class,false,false);
+        setDebugMode(PlayerEvent.class,false,false);
 
         PluginManager pm = getServer().getPluginManager();
         //entity events
@@ -123,6 +130,9 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.ENTITY_INTERACT, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.EXPLOSION_PRIME, entityListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.CREATURE_SPAWN, entityListener, Priority.Normal, this);
 
         //block events
         pm.registerEvent(Event.Type.BLOCK_CANBUILD, blockListener, Priority.Normal, this);
@@ -436,6 +446,10 @@ public class DevBukkit extends JavaPlugin {
                     message += damager.getClass().getSimpleName()+"["+damager.getEntityId()+"]";
                 }
                 message += " ("+((EntityDamageEvent) event).getCause()+")";
+            } else if (e instanceof ExplosionPrimeEvent) {
+                message += " exploded (" + ((ExplosionPrimeEvent)e).getEntity().getLocation().getX() + ", " + ((ExplosionPrimeEvent)e).getEntity().getLocation().getY() + ", " + ((ExplosionPrimeEvent)e).getEntity().getLocation().getZ() + ")";
+            } else if (e instanceof EntityInteractEvent) {
+                message += " interacted with " + ((EntityInteractEvent)e).getBlock() + " at (" + ((EntityInteractEvent)e).getBlock().getX() + ", " + ((EntityInteractEvent)e).getBlock().getY() + ", " + ((EntityInteractEvent)e).getBlock().getZ() + ")";
             }
         } else if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();

@@ -84,7 +84,7 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("entitye", EntityExplodeEvent.class);
         eventAliases.put("entityi", EntityInteractEvent.class);
         eventAliases.put("entityt", EntityTargetEvent.class);
-        eventAliases.put("explosionp", ExplosionPrimeEvent.class); 
+        eventAliases.put("explosionp", ExplosionPrimeEvent.class);
         eventAliases.put("creaturesp",CreatureSpawnEvent.class);
         //block event aliases
         eventAliases.put("block", BlockEvent.class);
@@ -123,6 +123,9 @@ public class DevBukkit extends JavaPlugin {
         setDebugMode(EntityEvent.class,false,false);
         setDebugMode(BlockEvent.class,false,false);
         setDebugMode(PlayerEvent.class,false,false);
+        setCancelMode(EntityEvent.class,false,false);
+        setCancelMode(BlockEvent.class,false,false);
+        setCancelMode(PlayerEvent.class,false,false);
 
         PluginManager pm = getServer().getPluginManager();
         //entity events
@@ -182,7 +185,7 @@ public class DevBukkit extends JavaPlugin {
         if (sender instanceof Player) {
             player = (Player)sender;
         } else if (args.length > 0){
-            // Assume first parameter of args is a player and remove it. null if player not found. 
+            // Assume first parameter of args is a player and remove it. null if player not found.
             player = getServer().getPlayer(args[0]);
             trimmedArgs = new String[args.length-1];
             for(int i = 1; i < args.length; i++)
@@ -213,7 +216,7 @@ public class DevBukkit extends JavaPlugin {
                         boolean priv = false;
                         if(args.length > 3 && args[3].equalsIgnoreCase("p")){
                             priv = true;
-                        } 
+                        }
                         if (args[2].equalsIgnoreCase("on")) {
                             infoMessage(sender, "Event "+args[1]+" debug mode on"+(priv?" (private).":"."));
                             setDebugMode(eventClass, true, priv);
@@ -243,7 +246,7 @@ public class DevBukkit extends JavaPlugin {
                         boolean priv = false;
                         if(args.length > 3 && args[3].equalsIgnoreCase("p")){
                             priv = true;
-                        } 
+                        }
                         if (args[2].equalsIgnoreCase("on")) {
                             infoMessage(sender, "Event "+args[1]+" cancel mode on"+(priv?" (private).":"."));
                             setCancelMode(eventClass, true, priv);
@@ -312,7 +315,7 @@ public class DevBukkit extends JavaPlugin {
         topLevelClass = PlayerEvent.class;
         sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "player -> " + topLevelClass.getSimpleName());
         sender.sendMessage("Use help <name> to get help on a specific event. ");
-        
+
     }
 
     private void printHelp(CommandSender sender, Class<?> eventClass) {
@@ -368,7 +371,7 @@ public class DevBukkit extends JavaPlugin {
 
     /**
      * Checks and cancels an event if it's event class has been specified to be cancelled.
-     * 
+     *
      * @param event The event to check, and cancel if necessary.
      */
     public void cancelEvent(Event event){
@@ -380,7 +383,7 @@ public class DevBukkit extends JavaPlugin {
     /**
      * Perform actions for an event depending on the player's god mode status.
      * Any damage event will have the damage set to 0.
-     * 
+     *
      * @param event
      */
     public void godMode(Event event) {
@@ -390,7 +393,7 @@ public class DevBukkit extends JavaPlugin {
             // we cancel entities targeting any god that didn't strike first
             if(event instanceof EntityTargetEvent){
                 if(((EntityTargetEvent) event).getReason() != TargetReason.TARGET_ATTACKED_ENTITY){
-                    
+
                     entity = ((EntityTargetEvent) event).getTarget();
                     if(entity instanceof Player){
                         Player player = (Player) entity;
@@ -510,7 +513,7 @@ public class DevBukkit extends JavaPlugin {
 
     /**
      * If this player is a DevGod.
-     * 
+     *
      * @param player the Player to check
      * @return if this Player is a DevGod
      */

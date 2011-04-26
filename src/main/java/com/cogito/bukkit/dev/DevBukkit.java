@@ -426,15 +426,19 @@ public class DevBukkit extends JavaPlugin {
             message += " "+((EntityEvent) e).getEntity().getClass().getSimpleName()
                      + "["+((EntityEvent) e).getEntity().getEntityId()+"]";
             if (e instanceof EntityExplodeEvent) {
-                message += " exploded";
+                message += " exploded at (" + ((EntityExplodeEvent)e).getLocation().getX() + ", " + ((EntityExplodeEvent)e).getLocation().getY() + ", " + ((EntityExplodeEvent)e).getLocation().getZ() + ")";
             } else if (e instanceof EntityCombustEvent) {
-                message += " caught fire";
+                message += " caught fire at (" + ((EntityCombustEvent)e).getEntity().getLocation().getX() + ", " + ((EntityCombustEvent)e).getEntity().getLocation().getY() + ", " + ((EntityCombustEvent)e).getEntity().getLocation().getZ() + ")";
             } else if (e instanceof EntityDeathEvent) {
-                message += " died";
+                message += " died at (" + ((EntityDeathEvent)e).getEntity().getLocation().getX() + ", " + ((EntityDeathEvent)e).getEntity().getLocation().getY() + ", " + ((EntityDeathEvent)e).getEntity().getLocation().getZ() + ")";
             } else if (e instanceof EntityTargetEvent) {
                 Entity target = ((EntityTargetEvent) e).getTarget();
-                message += " has targeted " + target.getClass().getSimpleName()+"["+target.getEntityId()+"]"
+                if (target == null) {
+                    message += " tried to target a dead entity ("+((EntityTargetEvent) e).getReason()+")";;
+                } else {
+                    message += " has targeted " + target.getClass().getSimpleName()+"["+target.getEntityId()+"]"
                          + " ("+((EntityTargetEvent) e).getReason()+")";
+                }
             } else if (e instanceof EntityDamageEvent) {
                 message += " was damaged";
                 if (e instanceof EntityDamageByBlockEvent) {
@@ -452,7 +456,9 @@ public class DevBukkit extends JavaPlugin {
             } else if (e instanceof ExplosionPrimeEvent) {
                 message += " exploded (" + ((ExplosionPrimeEvent)e).getEntity().getLocation().getX() + ", " + ((ExplosionPrimeEvent)e).getEntity().getLocation().getY() + ", " + ((ExplosionPrimeEvent)e).getEntity().getLocation().getZ() + ")";
             } else if (e instanceof EntityInteractEvent) {
-                message += " interacted with " + ((EntityInteractEvent)e).getBlock() + " at (" + ((EntityInteractEvent)e).getBlock().getX() + ", " + ((EntityInteractEvent)e).getBlock().getY() + ", " + ((EntityInteractEvent)e).getBlock().getZ() + ")";
+                message += " interacted with " + ((EntityInteractEvent)e).getBlock().getType() + " at (" + ((EntityInteractEvent)e).getBlock().getX() + ", " + ((EntityInteractEvent)e).getBlock().getY() + ", " + ((EntityInteractEvent)e).getBlock().getZ() + ")";
+            } else if (e instanceof CreatureSpawnEvent) {
+                message += " spawned at (" + ((CreatureSpawnEvent)e).getLocation().getX() + ", " + ((CreatureSpawnEvent)e).getLocation().getY() + ", " + ((CreatureSpawnEvent)e).getLocation().getZ() + ")";
             }
         } else if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();

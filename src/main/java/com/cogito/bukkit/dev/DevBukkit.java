@@ -16,6 +16,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.event.block.Action;
+
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
@@ -28,6 +29,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -38,17 +40,41 @@ import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
+import org.bukkit.event.entity.EntityInteractEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
+
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerBedLeaveEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEggThrowEvent;
+import org.bukkit.event.player.PlayerInventoryEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
+
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityInteractEvent;
-import org.bukkit.event.entity.ExplosionPrimeEvent;
+
 import org.bukkit.util.config.Configuration;
 
 /**
@@ -102,7 +128,29 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("signc", SignChangeEvent.class);
         //player event aliases
         eventAliases.put("player", PlayerEvent.class);
+        eventAliases.put("playeran", PlayerAnimationEvent.class);
+        eventAliases.put("playerbede", PlayerBedEnterEvent.class);
+        eventAliases.put("playerbedl", PlayerBedLeaveEvent.class);
+        eventAliases.put("playerbe", PlayerBucketEmptyEvent.class);
+        eventAliases.put("playerbf", PlayerBucketFillEvent.class);
+        eventAliases.put("playerch", PlayerChatEvent.class);
+        eventAliases.put("playercp", PlayerCommandPreprocessEvent.class);
+        eventAliases.put("playerdr", PlayerDropItemEvent.class);
+        eventAliases.put("playeret", PlayerEggThrowEvent.class);
+        eventAliases.put("playerit", PlayerInteractEvent.class);
+        eventAliases.put("playerinv", PlayerInventoryEvent.class);
+        eventAliases.put("playerih", PlayerItemHeldEvent.class);
+        eventAliases.put("playerj", PlayerJoinEvent.class);
+        eventAliases.put("playerk", PlayerKickEvent.class);
+        eventAliases.put("playerlo", PlayerLoginEvent.class);
+        eventAliases.put("playermo", PlayerMoveEvent.class);
+        eventAliases.put("playerpi", PlayerPickupItemEvent.class);
+        eventAliases.put("playerpl", PlayerPreLoginEvent.class);
+        eventAliases.put("playerq", PlayerQuitEvent.class);
+        eventAliases.put("playerr", PlayerRespawnEvent.class);
+        eventAliases.put("playerte", PlayerTeleportEvent.class);
         eventAliases.put("playeri", PlayerInteractEvent.class);
+        eventAliases.put("playerts", PlayerToggleSneakEvent.class);
     }
 
     public void onDisable() {
@@ -153,6 +201,26 @@ public class DevBukkit extends JavaPlugin {
 
         //player events
         pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_ANIMATION, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_BED_ENTER, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_BED_LEAVE, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_EGG_THROW, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_INVENTORY, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_ITEM_HELD, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_KICK, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_LOGIN, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_PICKUP_ITEM, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_PRELOGIN, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_RESPAWN, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Normal, this);
 
         loadConfig();
         saveConfig();

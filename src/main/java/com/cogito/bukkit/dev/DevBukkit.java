@@ -26,6 +26,7 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
@@ -98,6 +99,7 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("leavesd", LeavesDecayEvent.class);
         eventAliases.put("blockbu", BlockBurnEvent.class);
         eventAliases.put("blockbr", BlockBreakEvent.class);
+        eventAliases.put("signc", SignChangeEvent.class);
         //player event aliases
         eventAliases.put("player", PlayerEvent.class);
         eventAliases.put("playeri", PlayerInteractEvent.class);
@@ -147,6 +149,7 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.LEAVES_DECAY, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BURN, blockListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.SIGN_CHANGE, blockListener, Priority.Normal, this);
 
         //player events
         pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
@@ -420,8 +423,12 @@ public class DevBukkit extends JavaPlugin {
         Event e = event;
         String message = e.getClass().getSimpleName()+" ["+e.getType()+"]";
         if (e instanceof BlockEvent) {
-            message += " ("+((BlockEvent) e).getBlock().getX()+" "+((BlockEvent) e).getBlock().getY()+" "+((BlockEvent) e).getBlock().getZ()+") "
-                     + ((BlockEvent) e).getBlock().getType() + "{" + ((BlockEvent) e).getBlock().getData() + "}";
+            if (e instanceof SignChangeEvent) {
+                message += "A sign was modified to: " + ((SignChangeEvent)e).getLine(0) + " // " + ((SignChangeEvent)e).getLine(1) + " // " + ((SignChangeEvent)e).getLine(2) + " // " + ((SignChangeEvent)e).getLine(3);
+            } else {
+                message += " ("+((BlockEvent) e).getBlock().getX()+" "+((BlockEvent) e).getBlock().getY()+" "+((BlockEvent) e).getBlock().getZ()+") "
+                         + ((BlockEvent) e).getBlock().getType() + "{" + ((BlockEvent) e).getBlock().getData() + "}";
+            }
         } else if (e instanceof EntityEvent) {
             message += " "+((EntityEvent) e).getEntity().getClass().getSimpleName()
                      + "["+((EntityEvent) e).getEntity().getEntityId()+"]";

@@ -10,10 +10,11 @@ import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.SignChangeEvent;
 
 public class DevBlockListener extends BlockListener {
     private final DevBukkit plugin;
-    
+
     public DevBlockListener(DevBukkit instance) {
         plugin = instance;
     }
@@ -73,6 +74,12 @@ public class DevBlockListener extends BlockListener {
     }
 
     public void onBlockBreak(BlockBreakEvent event) {
+        plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
+    }
+
+    public void onSignChange(SignChangeEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);
         plugin.godMode(event);

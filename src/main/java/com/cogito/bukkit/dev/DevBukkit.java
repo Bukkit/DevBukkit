@@ -311,12 +311,9 @@ public class DevBukkit extends JavaPlugin {
 
     private void printHelp(CommandSender sender) {
         printHelpHeader(sender);
-        Class<?> topLevelClass = BlockEvent.class;
-        sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "block -> " + topLevelClass.getSimpleName());
-        topLevelClass = EntityEvent.class;
-        sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "entity -> " + topLevelClass.getSimpleName());
-        topLevelClass = PlayerEvent.class;
-        sender.sendMessage((debug(topLevelClass)?ChatColor.GREEN:ChatColor.RED) + "player -> " + topLevelClass.getSimpleName());
+        sender.sendMessage(eventStatus("block"));
+        sender.sendMessage(eventStatus("entity"));
+        sender.sendMessage(eventStatus("player"));
         sender.sendMessage("Use help <name> to get help on a specific event. ");
 
     }
@@ -325,9 +322,7 @@ public class DevBukkit extends JavaPlugin {
         printHelpHeader(sender);
         for(Entry<String, Class<?>> entry : eventAliases.entrySet()){
             if(eventClass.isAssignableFrom(entry.getValue())){
-                sender.sendMessage((debug(entry.getValue())?ChatColor.GREEN:ChatColor.RED)+"D "
-                                  +(cancel(entry.getValue())?ChatColor.GREEN:ChatColor.RED)+"C | "
-                                  +ChatColor.WHITE+entry.getKey() + " -> " + entry.getValue().getSimpleName());
+                sender.sendMessage(eventStatus(entry.getKey()));
             }
         }
     }
@@ -336,10 +331,10 @@ public class DevBukkit extends JavaPlugin {
         sender.sendMessage(ChatColor.GOLD + "== Dev Help ==");
         if(sender instanceof Player){
             Player player = (Player)sender;
-            player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE "+(isGod(player)?"ON":"OFF"));
+            player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE IS "+(isGod(player)?"ON":"OFF"));
         }
-        sender.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE "+(debugGlobal?"ON":"OFF"));
-        sender.sendMessage((cancelGlobal?ChatColor.GREEN:ChatColor.RED) + "CANCEL MODE "+(cancelGlobal?"ON":"OFF"));
+        sender.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE IS "+(debugGlobal?"ON":"OFF"));
+        sender.sendMessage((cancelGlobal?ChatColor.GREEN:ChatColor.RED) + "CANCEL MODE IS "+(cancelGlobal?"ON":"OFF"));
     }
 
     public void debugMessage(String string) {
@@ -417,6 +412,11 @@ public class DevBukkit extends JavaPlugin {
                 }
             }
         }
+    }
+
+    private String eventStatus(String eventAlias) {
+        Class<?> eventClass = eventAliases.get(eventAlias);
+        return (debug(eventClass)?ChatColor.GREEN:ChatColor.RED)+"D "+(cancel(eventClass)?ChatColor.GREEN:ChatColor.RED)+"C | "+ChatColor.WHITE+eventAlias + " -> " + eventClass.getSimpleName();
     }
 
     private String debugString(Event event) {

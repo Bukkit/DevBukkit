@@ -29,8 +29,6 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 /**
  * Handle all Player related events
- *
- * @author EvilSeph
  */
 public class DevPlayerListener extends PlayerListener {
     private final DevBukkit plugin;

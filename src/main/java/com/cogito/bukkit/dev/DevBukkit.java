@@ -9,6 +9,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -79,8 +80,6 @@ import org.bukkit.util.config.Configuration;
 
 /**
  * Miscellaneous administrative commands
- *
- * @author Cogito
  */
 public class DevBukkit extends JavaPlugin {
     private final DevEntityListener entityListener = new DevEntityListener(this);
@@ -254,7 +253,7 @@ public class DevBukkit extends JavaPlugin {
 
         Player player = null;
         if (sender instanceof Player) {
-            player = (Player)sender;
+            player = (Player) sender;
         } else if (args.length > 0){
             // Assume first parameter of args is a player and remove it. null if player not found.
             player = getServer().getPlayer(args[0]);
@@ -289,10 +288,10 @@ public class DevBukkit extends JavaPlugin {
                             priv = true;
                         }
                         if (args[2].equalsIgnoreCase("on")) {
-                            infoMessage(sender, "Event "+args[1]+" debug mode on"+(priv?" (private).":"."));
+                            infoMessage(sender, "Event " + args[1] + " debug mode on" + (priv ? " (private)." : "."));
                             setDebugMode(eventClass, true, priv);
                         } else if (args[2].equalsIgnoreCase("off")) {
-                            infoMessage(sender, "Event "+args[1]+" debug mode off"+(priv?" (private).":"."));
+                            infoMessage(sender, "Event " + args[1] + " debug mode off" + (priv ? " (private)." : "."));
                             setDebugMode(eventClass, false, priv);
                         } else {
                             return false;
@@ -319,10 +318,10 @@ public class DevBukkit extends JavaPlugin {
                             priv = true;
                         }
                         if (args[2].equalsIgnoreCase("on")) {
-                            infoMessage(sender, "Event "+args[1]+" cancel mode on"+(priv?" (private).":"."));
+                            infoMessage(sender, "Event " + args[1] + " cancel mode on" + (priv ? " (private)." : "."));
                             setCancelMode(eventClass, true, priv);
                         } else if (args[2].equalsIgnoreCase("off")) {
-                            infoMessage(sender, "Event "+args[1]+" cancel mode off"+(priv?" (private).":"."));
+                            infoMessage(sender, "Event " + args[1] + " cancel mode off" + (priv ? " (private)." : "."));
                             setCancelMode(eventClass, false, priv);
                         } else {
                             return false;
@@ -339,7 +338,7 @@ public class DevBukkit extends JavaPlugin {
                 }
             } else if (args[0].equalsIgnoreCase("god") && player != null) {
                 if (args.length == 1) {
-                    infoMessage(sender, "God mode "+(godModeToggle(player)?"on":"off")+".");
+                    infoMessage(sender, "God mode " + (godModeToggle(player) ? "on" : "off") + ".");
                 } else if (args.length == 2) {
                     if (args[1].equalsIgnoreCase("on")) {
                         if(setGodMode(player, true)){
@@ -398,11 +397,11 @@ public class DevBukkit extends JavaPlugin {
     private void printHelpHeader(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "== Dev Help ==");
         if(sender instanceof Player){
-            Player player = (Player)sender;
-            player.sendMessage((isGod(player)?ChatColor.GREEN:ChatColor.RED) + "GOD MODE IS "+(isGod(player)?"ON":"OFF"));
+            Player player = (Player) sender;
+            player.sendMessage((isGod(player) ? ChatColor.GREEN:ChatColor.RED) + "GOD MODE IS " + (isGod(player) ? "ON" : "OFF"));
         }
-        sender.sendMessage((debugGlobal?ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE IS "+(debugGlobal?"ON":"OFF"));
-        sender.sendMessage((cancelGlobal?ChatColor.GREEN:ChatColor.RED) + "CANCEL MODE IS "+(cancelGlobal?"ON":"OFF"));
+        sender.sendMessage((debugGlobal ? ChatColor.GREEN:ChatColor.RED) + "DEBUG MODE IS " + (debugGlobal ? "ON" : "OFF"));
+        sender.sendMessage((cancelGlobal ? ChatColor.GREEN:ChatColor.RED) + "CANCEL MODE IS "+ (cancelGlobal ? "ON" : "OFF"));
     }
 
     public void debugMessage(String string) {
@@ -457,13 +456,13 @@ public class DevBukkit extends JavaPlugin {
             Entity entity = ((EntityEvent) event).getEntity();
 
             // we cancel entities targeting any god that didn't strike first
-            if(event instanceof EntityTargetEvent){
-                if(((EntityTargetEvent) event).getReason() != TargetReason.TARGET_ATTACKED_ENTITY){
+            if (event instanceof EntityTargetEvent) {
+                if (((EntityTargetEvent) event).getReason() != TargetReason.TARGET_ATTACKED_ENTITY){
 
                     entity = ((EntityTargetEvent) event).getTarget();
-                    if(entity instanceof Player){
+                    if (entity instanceof Player) {
                         Player player = (Player) entity;
-                        if(isGod(player)){
+                        if (isGod(player)) {
                             ((Cancellable) event).setCancelled(true);
                         }
                     }
@@ -471,9 +470,9 @@ public class DevBukkit extends JavaPlugin {
             }
 
             // affect the player in some way, if god.
-            if(entity instanceof Player){
+            if (entity instanceof Player) {
                 Player player = (Player) entity;
-                if(isGod(player)){
+                if (isGod(player)) {
                     if (event instanceof EntityDamageEvent) {
                         ((EntityDamageEvent) event).setDamage(0);
                     }
@@ -484,64 +483,98 @@ public class DevBukkit extends JavaPlugin {
 
     private String eventStatus(String eventAlias) {
         Class<?> eventClass = eventAliases.get(eventAlias);
-        return (debug(eventClass)?ChatColor.GREEN:ChatColor.RED)+"D "+(cancel(eventClass)?ChatColor.GREEN:ChatColor.RED)+"C | "+ChatColor.WHITE+eventAlias + " -> " + eventClass.getSimpleName();
+        return (debug(eventClass) ? ChatColor.GREEN:ChatColor.RED) + "D " + (cancel(eventClass) ? ChatColor.GREEN:ChatColor.RED) + "C | " + ChatColor.WHITE + eventAlias + " -> " + eventClass.getSimpleName();
     }
 
     private String debugString(Event event) {
         Event e = event;
-        String message = e.getClass().getSimpleName()+" ["+e.getType()+"]";
+        String message = e.getClass().getSimpleName() + " [" + e.getType() + "]";
         if (e instanceof BlockEvent) {
             if (e instanceof SignChangeEvent) {
-                message += "A sign was modified to: " + ((SignChangeEvent)e).getLine(0) + " // " + ((SignChangeEvent)e).getLine(1) + " // " + ((SignChangeEvent)e).getLine(2) + " // " + ((SignChangeEvent)e).getLine(3);
+                SignChangeEvent signc = (SignChangeEvent) e;
+
+                message += " A sign was modified to: " + signc.getLine(0) + " // " + signc.getLine(1) + " // " + signc.getLine(2) + " // " + signc.getLine(3);
             } else {
-                message += " ("+((BlockEvent) e).getBlock().getX()+" "+((BlockEvent) e).getBlock().getY()+" "+((BlockEvent) e).getBlock().getZ()+") "
-                         + ((BlockEvent) e).getBlock().getType() + "{" + ((BlockEvent) e).getBlock().getData() + "}";
+                BlockEvent blockEvent = (BlockEvent) e;
+                Block block = blockEvent.getBlock();
+
+                message += " (" + block.getX() + " " + block.getY() + " " + block.getZ()+ ") " + block.getType() + "{" + block.getData() + "}";
             }
         } else if (e instanceof EntityEvent) {
-            message += " "+((EntityEvent) e).getEntity().getClass().getSimpleName()
-                     + "["+((EntityEvent) e).getEntity().getEntityId()+"]";
+            Entity entity = ((EntityEvent) e).getEntity();
+            message += " " + entity.getClass().getSimpleName() + "[" + entity.getEntityId() + "]";
             if (e instanceof EntityExplodeEvent) {
-                message += " exploded at (" + ((EntityExplodeEvent)e).getLocation().getX() + ", " + ((EntityExplodeEvent)e).getLocation().getY() + ", " + ((EntityExplodeEvent)e).getLocation().getZ() + ")";
+                EntityExplodeEvent entitye = (EntityExplodeEvent) e;
+                Location location = entitye.getLocation();
+
+                message += " exploded at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             } else if (e instanceof EntityCombustEvent) {
-                message += " caught fire at (" + ((EntityCombustEvent)e).getEntity().getLocation().getX() + ", " + ((EntityCombustEvent)e).getEntity().getLocation().getY() + ", " + ((EntityCombustEvent)e).getEntity().getLocation().getZ() + ")";
+                EntityCombustEvent entityc = (EntityCombustEvent) e;
+                entity = entityc.getEntity();
+                Location location = entity.getLocation();
+
+                message += " caught fire at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             } else if (e instanceof EntityDeathEvent) {
-                message += " died at (" + ((EntityDeathEvent)e).getEntity().getLocation().getX() + ", " + ((EntityDeathEvent)e).getEntity().getLocation().getY() + ", " + ((EntityDeathEvent)e).getEntity().getLocation().getZ() + ")";
+                EntityDeathEvent entityde = (EntityDeathEvent) e;
+                entity = entityde.getEntity();
+                Location location = entity.getLocation();
+
+                message += " died at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             } else if (e instanceof EntityTargetEvent) {
-                Entity target = ((EntityTargetEvent) e).getTarget();
+                EntityTargetEvent entityt = (EntityTargetEvent) e;
+                Entity target = entityt.getTarget();
+
                 if (target == null) {
-                    message += " tried to target a dead entity ("+((EntityTargetEvent) e).getReason()+")";;
+                    message += " tried to target a dead entity ("+ entityt.getReason() + ")";
                 } else {
-                    message += " has targeted " + target.getClass().getSimpleName()+"["+target.getEntityId()+"]"
-                         + " ("+((EntityTargetEvent) e).getReason()+")";
+                    message += " has targeted " + target.getClass().getSimpleName() + "[" + target.getEntityId() + "]" + " (" + entityt.getReason() + ")";
                 }
             } else if (e instanceof EntityDamageEvent) {
                 message += " was damaged";
                 if (e instanceof EntityDamageByBlockEvent) {
-                    Block block = ((EntityDamageByBlockEvent) event).getDamager();
-                    message += " by "+((block == null)?"'null'":"a block of "+block.getClass().getSimpleName());
+                    EntityDamageByBlockEvent entitydbb = (EntityDamageByBlockEvent) e;
+                    Block block = entitydbb.getDamager();
+
+                    message += " by " + ((block == null) ? "'null'" : "a block of " + block.getClass().getSimpleName());
                 } else if (e instanceof EntityDamageByEntityEvent) {
-                    Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+                    EntityDamageByEntityEvent entitydbe = (EntityDamageByEntityEvent) e;
+                    Entity damager = entitydbe.getDamager();
+
                     message += " by ";
                     if (e instanceof EntityDamageByProjectileEvent) {
-                        message += "a projectile ("+((EntityDamageByProjectileEvent) e).getProjectile().getClass().getSimpleName()+") from ";
+                        EntityDamageByProjectileEvent entitydbp = (EntityDamageByProjectileEvent) e;
+
+                        message += "a projectile (" + entitydbp.getProjectile().getClass().getSimpleName() + ") from ";
                     }
-                    message += damager.getClass().getSimpleName()+"["+damager.getEntityId()+"]";
+                    message += damager.getClass().getSimpleName() + "[" + damager.getEntityId() + "]";
                 }
-                message += " ("+((EntityDamageEvent) event).getCause()+")";
+                message += " (" + ((EntityDamageEvent) event).getCause() + ")";
             } else if (e instanceof ExplosionPrimeEvent) {
-                message += " exploded (" + ((ExplosionPrimeEvent)e).getEntity().getLocation().getX() + ", " + ((ExplosionPrimeEvent)e).getEntity().getLocation().getY() + ", " + ((ExplosionPrimeEvent)e).getEntity().getLocation().getZ() + ")";
+                ExplosionPrimeEvent explosionp = (ExplosionPrimeEvent) e;
+                entity = explosionp.getEntity();
+                Location location = entity.getLocation();
+
+                message += " exploded (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             } else if (e instanceof EntityInteractEvent) {
+                EntityInteractEvent entityit = (EntityInteractEvent) e;
+
                 message += " interacted with " + ((EntityInteractEvent)e).getBlock().getType() + " at (" + ((EntityInteractEvent)e).getBlock().getX() + ", " + ((EntityInteractEvent)e).getBlock().getY() + ", " + ((EntityInteractEvent)e).getBlock().getZ() + ")";
             } else if (e instanceof CreatureSpawnEvent) {
-                message += " spawned at (" + ((CreatureSpawnEvent)e).getLocation().getX() + ", " + ((CreatureSpawnEvent)e).getLocation().getY() + ", " + ((CreatureSpawnEvent)e).getLocation().getZ() + ")";
+                CreatureSpawnEvent creaturesp = (CreatureSpawnEvent) e;
+                Location location = creaturesp.getLocation();
+
+                message += " spawned at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             }
         } else if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
             byte itemInHandData;
             short itemInHandDurability;
             message += " "+player.getName();
+
             if (e instanceof PlayerInteractEvent) {
+                PlayerInteractEvent playerit = (PlayerInteractEvent) e;
                 String itemInHand;
+
                 if (player.getItemInHand().getType() == Material.AIR) {
                     itemInHand = "nothing";
                     itemInHandData = -1;
@@ -552,21 +585,21 @@ public class DevBukkit extends JavaPlugin {
                     itemInHandDurability = player.getItemInHand().getDurability();
                 }
 
-                if (((PlayerInteractEvent)e).getAction() == Action.RIGHT_CLICK_BLOCK) {
-                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
-                    message += " right clicked " + block.getType() + "{" + block.getData() + "} ("
-                            + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with "
-                            + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
-                } else if (((PlayerInteractEvent)e).getAction() == Action.RIGHT_CLICK_AIR) {
-                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
+                if (playerit.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    Block block = playerit.getClickedBlock();
+
+                    message += " right clicked " + block.getType() + "{" + block.getData() + "} (" + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
+                } else if (playerit.getAction() == Action.RIGHT_CLICK_AIR) {
+                    Block block = playerit.getClickedBlock();
+
                     message += " right clicked AIR with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
-                } else if (((PlayerInteractEvent)e).getAction() == Action.LEFT_CLICK_BLOCK) {
-                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
-                    message += " left clicked " + block.getType() + "{" + block.getData() + "} ("
-                            + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with "
-                            + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
-                } else if (((PlayerInteractEvent)e).getAction() == Action.LEFT_CLICK_AIR) {
-                    Block block = ((PlayerInteractEvent)e).getClickedBlock();
+                } else if (playerit.getAction() == Action.LEFT_CLICK_BLOCK) {
+                    Block block = playerit.getClickedBlock();
+
+                    message += " left clicked " + block.getType() + "{" + block.getData() + "} (" + block.getX() + ", " + block.getY() + ", " + block.getZ() + ") with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
+                } else if (playerit.getAction() == Action.LEFT_CLICK_AIR) {
+                    Block block = playerit.getClickedBlock();
+
                     message += " left clicked AIR with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
                 }
             }
@@ -576,7 +609,7 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private boolean godModeToggle(Player player) {
-        if(isGod(player)){
+        if (isGod(player)) {
             return setGodMode(player, false);
         } else{
             return setGodMode(player, true);
@@ -584,7 +617,7 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private boolean setGodMode(Player player, boolean iAmGod){
-        if(player.isOp()){
+        if (player.isOp()) {
             gods.put(player, Boolean.valueOf(iAmGod));
             return iAmGod;
         } else {
@@ -606,7 +639,7 @@ public class DevBukkit extends JavaPlugin {
         // if debug killed, return false.
         // if a private debug setting is set, return that value;
         // otherwise, recursively check the default value and return if all super defaults are on.
-        return debugGlobal?(debugPrivates.containsKey(eventClass)?debugPrivates.get(eventClass):debugDefaultee(eventClass)):false;
+        return debugGlobal ? (debugPrivates.containsKey(eventClass) ? debugPrivates.get(eventClass):debugDefaultee(eventClass)) : false;
     }
 
     private void debugModeToggle() {
@@ -618,21 +651,21 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private void setDebugMode(Class<?> eventClass, boolean debug, boolean priv){
-        if(priv){
+        if (priv) {
             debugPrivates.put(eventClass, Boolean.valueOf(debug));
         } else {
             debugDefaultees.put(eventClass, Boolean.valueOf(debug));
             debugPrivates.remove(eventClass);
         }
-        if(debug){
+
+        if (debug) {
             debugGlobal = true;
         }
     }
 
     private boolean debugDefaultee(Class<?> eventClass) {
-        if(eventClass.getSuperclass() != null){
-            return debugDefaultees.containsKey(eventClass)?debugDefaultees.get(eventClass):true &&
-                   debugDefaultee(eventClass.getSuperclass());
+        if (eventClass.getSuperclass() != null) {
+            return debugDefaultees.containsKey(eventClass) ? debugDefaultees.get(eventClass) : true && debugDefaultee(eventClass.getSuperclass());
         } else {
             return true;
         }
@@ -640,14 +673,14 @@ public class DevBukkit extends JavaPlugin {
 
     private boolean cancel(Class<?> eventClass) {
         if (Cancellable.class.isAssignableFrom(eventClass)) {
-            return cancelGlobal?(cancelPrivates.containsKey(eventClass)?cancelPrivates.get(eventClass):cancelDefaultee(eventClass)):false;
+            return cancelGlobal ? (cancelPrivates.containsKey(eventClass) ? cancelPrivates.get(eventClass) : cancelDefaultee(eventClass)) : false;
         } else {
             return false;
         }
     }
 
     private void cancelModeToggle() {
-        cancelGlobal = cancelGlobal?false:true;
+        cancelGlobal = cancelGlobal ? false : true;
     }
 
     private void setCancelMode(boolean cancel) {
@@ -655,21 +688,21 @@ public class DevBukkit extends JavaPlugin {
     }
 
     private void setCancelMode(Class<?> eventClass, boolean cancel, boolean priv) {
-        if(priv){
+        if (priv) {
             cancelPrivates.put(eventClass, Boolean.valueOf(cancel));
         } else {
             cancelDefaultees.put(eventClass, Boolean.valueOf(cancel));
             cancelPrivates.remove(eventClass);
         }
-        if(cancel){
+
+        if (cancel) {
             cancelGlobal = true;
         }
     }
 
     private Boolean cancelDefaultee(Class<?> eventClass) {
-        if(eventClass.getSuperclass() != null){
-            return cancelDefaultees.containsKey(eventClass)?cancelDefaultees.get(eventClass):true &&
-                   cancelDefaultee(eventClass.getSuperclass());
+        if (eventClass.getSuperclass() != null) {
+            return cancelDefaultees.containsKey(eventClass) ? cancelDefaultees.get(eventClass) : true && cancelDefaultee(eventClass.getSuperclass());
         } else {
             return true;
         }

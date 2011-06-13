@@ -15,8 +15,6 @@ import org.bukkit.event.entity.ExplosionPrimeEvent;
 
 /**
  * Handle all Player related events
- * 
- * @author Cogito
  */
 public class DevEntityListener extends EntityListener {
     private final DevBukkit plugin;
@@ -42,7 +40,7 @@ public class DevEntityListener extends EntityListener {
         plugin.cancelEvent(event);
         plugin.godMode(event);
     }
-    
+
     public void onEntityCombust(EntityCombustEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);

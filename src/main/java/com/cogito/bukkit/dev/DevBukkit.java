@@ -46,8 +46,8 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -56,18 +56,24 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
-import org.bukkit.event.player.PlayerInventoryEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+
+import org.bukkit.entity.Egg;
+import org.bukkit.entity.Item;
+import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -108,7 +114,7 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("entityda", EntityDamageEvent.class);
         eventAliases.put("entityde", EntityDeathEvent.class);
         eventAliases.put("entitye", EntityExplodeEvent.class);
-        eventAliases.put("entityi", EntityInteractEvent.class);
+        eventAliases.put("entityit", EntityInteractEvent.class);
         eventAliases.put("entityt", EntityTargetEvent.class);
         eventAliases.put("explosionp", ExplosionPrimeEvent.class);
         eventAliases.put("creaturesp",CreatureSpawnEvent.class);
@@ -136,19 +142,19 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("playercp", PlayerCommandPreprocessEvent.class);
         eventAliases.put("playerdr", PlayerDropItemEvent.class);
         eventAliases.put("playeret", PlayerEggThrowEvent.class);
+        eventAliases.put("playerite", PlayerInteractEntityEvent.class);
         eventAliases.put("playerit", PlayerInteractEvent.class);
-        eventAliases.put("playerinv", PlayerInventoryEvent.class);
         eventAliases.put("playerih", PlayerItemHeldEvent.class);
         eventAliases.put("playerj", PlayerJoinEvent.class);
         eventAliases.put("playerk", PlayerKickEvent.class);
         eventAliases.put("playerlo", PlayerLoginEvent.class);
         eventAliases.put("playermo", PlayerMoveEvent.class);
         eventAliases.put("playerpi", PlayerPickupItemEvent.class);
+        eventAliases.put("playerpo", PlayerPortalEvent.class);
         eventAliases.put("playerpl", PlayerPreLoginEvent.class);
         eventAliases.put("playerq", PlayerQuitEvent.class);
         eventAliases.put("playerr", PlayerRespawnEvent.class);
         eventAliases.put("playerte", PlayerTeleportEvent.class);
-        eventAliases.put("playeri", PlayerInteractEvent.class);
         eventAliases.put("playerts", PlayerToggleSneakEvent.class);
     }
 
@@ -199,23 +205,24 @@ public class DevBukkit extends JavaPlugin {
         pm.registerEvent(Event.Type.SIGN_CHANGE, blockListener, Priority.Normal, this);
 
         //player events
-        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_ANIMATION, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_BED_ENTER, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_BED_LEAVE, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_EGG_THROW, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_INVENTORY, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_INTERACT_ENTITY, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_ITEM_HELD, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_KICK, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_LOGIN, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_PICKUP_ITEM, playerListener, Priority.Normal, this);
+        pm.registerEvent(Event.Type.PLAYER_PORTAL, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_PRELOGIN, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Normal, this);
         pm.registerEvent(Event.Type.PLAYER_RESPAWN, playerListener, Priority.Normal, this);
@@ -571,7 +578,56 @@ public class DevBukkit extends JavaPlugin {
             short itemInHandDurability;
             message += " "+player.getName();
 
-            if (e instanceof PlayerInteractEvent) {
+            if (e instanceof PlayerAnimationEvent) {
+                PlayerAnimationEvent playeran = (PlayerAnimationEvent) e;
+
+                if (playeran.getAnimationType() == PlayerAnimationType.ARM_SWING) {
+                    message += " swung their arm";
+                }
+            } else if (e instanceof PlayerBedEnterEvent) {
+                PlayerBedEnterEvent playerbede = (PlayerBedEnterEvent) e;
+                Block bed = playerbede.getBed();
+                Location location = bed.getLocation();
+
+                message += " entered a bed at: " + location.getX() + ", " + location.getY() + ", " + location.getZ();
+            } else if (e instanceof PlayerBedLeaveEvent) {
+                PlayerBedLeaveEvent playerbedl = (PlayerBedLeaveEvent) e;
+                Block bed = playerbedl.getBed();
+                Location location = bed.getLocation();
+
+                message += " left a bed at: " + location.getX() + ", " + location.getY() + ", " + location.getZ();
+            } else if (e instanceof PlayerBucketEmptyEvent) {
+                // Todo: construct debug message.
+                PlayerBucketEmptyEvent playerbe = (PlayerBucketEmptyEvent) e;
+            } else if (e instanceof PlayerBucketFillEvent) {
+                // Todo: construct debug message.
+                PlayerBucketFillEvent playerbf = (PlayerBucketFillEvent) e;
+            } else if (e instanceof PlayerChatEvent) {
+                PlayerChatEvent playerch = (PlayerChatEvent) e;
+                message += " said: " + playerch.getMessage();
+            } else if (e instanceof PlayerCommandPreprocessEvent) {
+                PlayerCommandPreprocessEvent playercp = (PlayerCommandPreprocessEvent) e;
+
+                message += " typed: " + playercp.getMessage();
+            } else if (e instanceof PlayerDropItemEvent) {
+                PlayerDropItemEvent playerdr = (PlayerDropItemEvent) e;
+                Item droppedItem = playerdr.getItemDrop();
+                Location location = playerdr.getItemDrop().getLocation();
+
+                message += " dropped " + droppedItem.getItemStack().getType() + " at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof PlayerEggThrowEvent) {
+                PlayerEggThrowEvent playeret = (PlayerEggThrowEvent) e;
+                Egg egg = playeret.getEgg();
+                Location location = egg.getLocation();
+
+                message += " threw a " + playeret.getHatchType() + " egg at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")" + (playeret.isHatching() ? " that will " : " that will not ") + "hatch";
+            } else if (e instanceof PlayerInteractEntityEvent) {
+                PlayerInteractEntityEvent playerite = (PlayerInteractEntityEvent) e;
+                Entity entity = playerite.getRightClicked();
+                Location location = entity.getLocation();
+
+                message += " right clicked a " + entity.getClass().getSimpleName() + " at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof PlayerInteractEvent) {
                 PlayerInteractEvent playerit = (PlayerInteractEvent) e;
                 String itemInHand;
 
@@ -602,6 +658,66 @@ public class DevBukkit extends JavaPlugin {
 
                     message += " left clicked AIR with " + itemInHand + " in hand [Data: " + itemInHandData + "; Dura: " + itemInHandDurability + "]";
                 }
+            } else if (e instanceof PlayerItemHeldEvent) {
+                PlayerItemHeldEvent playerih = (PlayerItemHeldEvent) e;
+                int previousSlot = playerih.getPreviousSlot();
+                int newSlot = playerih.getNewSlot();
+                ItemStack from = player.getInventory().getItem(previousSlot);
+                ItemStack to = player.getInventory().getItem(newSlot);
+
+                message += " switched the item they were holding from: " + from.getType() + "[Slot" + previousSlot + "], to: " + to.getType() + "[Slot" + newSlot + "]";
+            } else if (e instanceof PlayerJoinEvent) {
+                PlayerJoinEvent playerj = (PlayerJoinEvent) e;
+                Location location = player.getLocation();
+
+                message += " joined at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof PlayerKickEvent) {
+                PlayerKickEvent playerk = (PlayerKickEvent) e;
+
+                message += " was kicked for: " + playerk.getReason();
+            } else if (e instanceof PlayerLoginEvent) {
+                PlayerLoginEvent playerlo = (PlayerLoginEvent) e;
+
+                message += " tried to login. Result: " + playerlo.getResult();
+            } else if (e instanceof PlayerMoveEvent) {
+                PlayerMoveEvent playermo = (PlayerMoveEvent) e;
+                Location from = playermo.getFrom();
+                Location to = playermo.getTo();
+
+                if (e instanceof PlayerTeleportEvent) {
+                    PlayerTeleportEvent playerte = (PlayerTeleportEvent) e;
+
+                    message += " from: [" + from.getWorld().getName()  + "] " + "(" + from.getX() + ", " + from.getY() + ", " + from.getZ() + "); to: [" + to.getWorld().getName()  + "] " + "(" + to.getX() + ", " + to.getY() + ", " + to.getZ() + ")";
+                } else if (e instanceof PlayerPortalEvent) {
+                    PlayerPortalEvent playerpo = (PlayerPortalEvent) e;
+
+                    message += " from: [" + from.getWorld().getName()  + "] " + "(" + from.getX() + ", " + from.getY() + ", " + from.getZ() + "); to: [" + to.getWorld().getName()  + "] " + "(" + to.getX() + ", " + to.getY() + ", " + to.getZ() + ")";
+                } else {
+                    message += " from (" + from.getX() + ", " + from.getY() + ", " + from.getZ() + "); to (" + to.getX() + ", " + to.getY() + ", " + to.getZ() + ")";
+                }
+            } else if (e instanceof PlayerPickupItemEvent) {
+                PlayerPickupItemEvent playerpi = (PlayerPickupItemEvent) e;
+                Item item = playerpi.getItem();
+                Location location = item.getLocation();
+
+                message += " picked up " + item.getItemStack().getType() + " at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof PlayerPreLoginEvent) {
+                // Todo: construct debug message.
+                PlayerPreLoginEvent playerpl = (PlayerPreLoginEvent) e;
+            } else if (e instanceof PlayerQuitEvent) {
+                PlayerQuitEvent playerq = (PlayerQuitEvent) e;
+                Location location = player.getLocation();
+
+                message += " quit the server while located at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof PlayerRespawnEvent) {
+                PlayerRespawnEvent playerr = (PlayerRespawnEvent) e;
+                Location location = playerr.getRespawnLocation();
+
+                message += " (re)spawned at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof PlayerToggleSneakEvent) {
+                PlayerToggleSneakEvent playerts = (PlayerToggleSneakEvent) e;
+
+                message += " toggled sneaking " + (player.isSneaking() ? " on" : " off");
             }
         }
         message += ".";

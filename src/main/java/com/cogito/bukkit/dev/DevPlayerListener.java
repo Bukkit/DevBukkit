@@ -4,7 +4,6 @@ import org.bukkit.Material;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
@@ -14,6 +13,8 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerInventoryEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -21,6 +22,7 @@ import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -91,6 +93,12 @@ public class DevPlayerListener extends PlayerListener {
         plugin.godMode(event);
     }
 
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
+    }
+
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getPlayer().getItemInHand().getType() == Material.SLIME_BALL && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             plugin.debugMessage("Block name: " + event.getClickedBlock().getType());
@@ -110,7 +118,7 @@ public class DevPlayerListener extends PlayerListener {
         plugin.godMode(event);
     }
 
-    public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+    public void onItemHeldChange(PlayerItemHeldEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);
         plugin.godMode(event);
@@ -141,6 +149,12 @@ public class DevPlayerListener extends PlayerListener {
     }
 
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+        plugin.debugMessage(event);
+        plugin.cancelEvent(event);
+        plugin.godMode(event);
+    }
+
+    public void onPlayerPortal(PlayerPortalEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);
         plugin.godMode(event);

@@ -9,6 +9,7 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
@@ -55,7 +56,7 @@ public class DevBlockListener extends BlockListener {
         plugin.godMode(event);
     }
 
-    public void onBlockRedstoneChange(BlockFromToEvent event) {
+    public void onBlockRedstoneChange(BlockRedstoneEvent event) {
         plugin.debugMessage(event);
         plugin.cancelEvent(event);
         plugin.godMode(event);

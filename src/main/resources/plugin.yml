@@ -2,11 +2,11 @@ name: DevBukkit
 main: com.cogito.bukkit.dev.DevBukkit
 author: The Bukkit Team
 website: http://bukkit.org
-version: 0.4
+version: 0.5
 commands:
   dev:
     description: Dev Commands
-    usage: |        
+    usage: |
         Incorrect usage of command /<command>. Examples:
            /<command> debug [on|off] - toggle full debug mode.
            /<command> debug <name> [on|off] [p] - toggle specific debug mode.
@@ -14,3 +14,4 @@ commands:
            /<command> cancel - as for debug. Cancels events if true.
            /<command> help [<name>] - list debug status and command aliases.
            /<command> god [on|off] - toggle god mode.
+           /<command> getdata - provide info on the item you have in your hand

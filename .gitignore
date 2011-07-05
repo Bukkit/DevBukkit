@@ -14,3 +14,9 @@
 
 # vim
 .*.sw[a-p]
+
+# intellij
+*.iml
+*.ipr
+*.iws
+.idea/

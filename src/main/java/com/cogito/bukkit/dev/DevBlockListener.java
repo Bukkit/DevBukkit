@@ -1,88 +1,152 @@
 package com.cogito.bukkit.dev;
 
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.block.SignChangeEvent;
 
-public class DevBlockListener extends BlockListener {
+/**
+ * Handles all Block related events
+ */
+public class DevBlockListener implements Listener {
     private final DevBukkit plugin;
 
     public DevBlockListener(DevBukkit instance) {
         plugin = instance;
     }
 
-    public void onBlockDamage(BlockDamageEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockCanBuild(BlockCanBuildEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockFromTo(BlockFromToEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockIgnite(BlockIgniteEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockPhysics(BlockPhysicsEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockPlace(BlockPlaceEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockRedstoneChange(BlockRedstoneEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onLeavesDecay(LeavesDecayEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
-    public void onBlockBurn(BlockBurnEvent event) {
-        plugin.debugMessage(event);
-        plugin.cancelEvent(event);
-        plugin.godMode(event);
-    }
-
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        plugin.debugMessage(event);
         plugin.cancelEvent(event);
+        plugin.debugMessage(event);
         plugin.godMode(event);
     }
 
-    public void onSignChange(SignChangeEvent event) {
-        plugin.debugMessage(event);
+    @EventHandler
+    public void onBlockBurn(BlockBurnEvent event) {
         plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockCanBuild(BlockCanBuildEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockDamage(BlockDamageEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockDispense(BlockDispenseEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockFade(BlockFadeEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockForm(BlockFormEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockFromTo(BlockFromToEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockIgnite(BlockIgniteEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockPistonRetract(BlockPistonRetractEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockRedstoneChange(BlockRedstoneEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onBlockSpread(BlockSpreadEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onLeavesDecay(LeavesDecayEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onSignChange(SignChangeEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
         plugin.godMode(event);
     }
 }

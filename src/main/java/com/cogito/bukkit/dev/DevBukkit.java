@@ -9,28 +9,37 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
 import org.bukkit.event.block.Action;
 
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
-import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.SignChangeEvent;
 
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreeperPowerEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -39,13 +48,26 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
+import org.bukkit.event.entity.EntityPortalEnterEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetEvent.TargetReason;
-import org.bukkit.event.entity.EntityInteractEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.event.entity.PigZapEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 
-import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.inventory.FurnaceBurnEvent;
+import org.bukkit.event.inventory.FurnaceSmeltEvent;
+
+import org.bukkit.event.painting.PaintingBreakByEntityEvent;
+import org.bukkit.event.painting.PaintingBreakEvent;
+import org.bukkit.event.painting.PaintingEvent;
+import org.bukkit.event.painting.PaintingPlaceEvent;
+
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerBedEnterEvent;
@@ -56,6 +78,8 @@ import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -71,6 +95,35 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
+import org.bukkit.event.vehicle.VehicleBlockCollisionEvent;
+import org.bukkit.event.vehicle.VehicleCollisionEvent;
+import org.bukkit.event.vehicle.VehicleCreateEvent;
+import org.bukkit.event.vehicle.VehicleDamageEvent;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleEntityCollisionEvent;
+import org.bukkit.event.vehicle.VehicleEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.event.vehicle.VehicleUpdateEvent;
+
+import org.bukkit.event.weather.LightningStrikeEvent;
+import org.bukkit.event.weather.ThunderChangeEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.event.weather.WeatherEvent;
+
+import org.bukkit.event.world.ChunkEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkPopulateEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.world.PortalCreateEvent;
+import org.bukkit.event.world.SpawnChangeEvent;
+import org.bukkit.event.world.WorldEvent;
+import org.bukkit.event.world.WorldInitEvent;
+import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldSaveEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
+
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
@@ -84,13 +137,19 @@ import org.bukkit.command.CommandSender;
 
 import org.bukkit.util.config.Configuration;
 
+import org.bukkit.inventory.ShapedRecipe;
+
 /**
  * Miscellaneous administrative commands
  */
 public class DevBukkit extends JavaPlugin {
-    private final DevEntityListener entityListener = new DevEntityListener(this);
     private final DevBlockListener blockListener = new DevBlockListener(this);
+    private final DevEntityListener entityListener = new DevEntityListener(this);
+    private final DevInventoryListener inventoryListener = new DevInventoryListener(this);
     private final DevPlayerListener playerListener = new DevPlayerListener(this);
+    private final DevVehicleListener vehicleListener = new DevVehicleListener(this);
+    private final DevWeatherListener weatherListener = new DevWeatherListener(this);
+    private final DevWorldListener worldListener = new DevWorldListener(this);
     private boolean debugGlobal;
     private Map<Class<?>, Boolean> debugPrivates;
     private Map<Class<?>, Boolean> debugDefaultees;
@@ -103,10 +162,32 @@ public class DevBukkit extends JavaPlugin {
     public static String debugTargets;
 
     private void initialiseEventAliases() {
-        //need to be in lower case
-        //eventAliases.put("Event", Event.class);
-        //entity event aliases
+        // need to be in lower case
+        // eventAliases.put("Event", Event.class);
+        // block event aliases
+        eventAliases.put("block", BlockEvent.class);
+        eventAliases.put("blockbr", BlockBreakEvent.class);
+        eventAliases.put("blockbu", BlockBurnEvent.class);
+        eventAliases.put("blockcb", BlockCanBuildEvent.class);
+        eventAliases.put("blockd", BlockDamageEvent.class);
+        eventAliases.put("blockdi", BlockDispenseEvent.class);
+        eventAliases.put("blockfa", BlockFadeEvent.class);
+        eventAliases.put("blockfo", BlockFormEvent.class);
+        eventAliases.put("blockft", BlockFromToEvent.class);
+        eventAliases.put("blockig", BlockIgniteEvent.class);
+        eventAliases.put("blockph", BlockPhysicsEvent.class);
+        eventAliases.put("blockpi", BlockPistonEvent.class);
+        eventAliases.put("blockpie", BlockPistonExtendEvent.class);
+        eventAliases.put("blockpir", BlockPistonRetractEvent.class);
+        eventAliases.put("blockpl", BlockPlaceEvent.class);
+        eventAliases.put("blockred", BlockRedstoneEvent.class);
+        eventAliases.put("blocksp", BlockSpreadEvent.class);
+        eventAliases.put("leavesd", LeavesDecayEvent.class);
+        eventAliases.put("signc", SignChangeEvent.class);
+        // entity event aliases
         eventAliases.put("entity", EntityEvent.class);
+        eventAliases.put("creaturesp",CreatureSpawnEvent.class);
+        eventAliases.put("creeperp", CreeperPowerEvent.class);
         eventAliases.put("entityc", EntityCombustEvent.class);
         eventAliases.put("entitydbb", EntityDamageByBlockEvent.class);
         eventAliases.put("entitydbe", EntityDamageByEntityEvent.class);
@@ -115,23 +196,21 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("entityde", EntityDeathEvent.class);
         eventAliases.put("entitye", EntityExplodeEvent.class);
         eventAliases.put("entityit", EntityInteractEvent.class);
+        eventAliases.put("entitype", EntityPortalEnterEvent.class);
+        eventAliases.put("entityrh", EntityRegainHealthEvent.class);
+        eventAliases.put("entityta",EntityTameEvent.class);
         eventAliases.put("entityt", EntityTargetEvent.class);
         eventAliases.put("explosionp", ExplosionPrimeEvent.class);
-        eventAliases.put("creaturesp",CreatureSpawnEvent.class);
-        //block event aliases
-        eventAliases.put("block", BlockEvent.class);
-        eventAliases.put("blockd", BlockDamageEvent.class);
-        eventAliases.put("blockcb", BlockCanBuildEvent.class);
-        eventAliases.put("blockft", BlockFromToEvent.class);
-        eventAliases.put("blockig", BlockIgniteEvent.class);
-        eventAliases.put("blockph", BlockPhysicsEvent.class);
-        eventAliases.put("blockpl", BlockPlaceEvent.class);
-        eventAliases.put("blockred", BlockRedstoneEvent.class);
-        eventAliases.put("leavesd", LeavesDecayEvent.class);
-        eventAliases.put("blockbu", BlockBurnEvent.class);
-        eventAliases.put("blockbr", BlockBreakEvent.class);
-        eventAliases.put("signc", SignChangeEvent.class);
-        //player event aliases
+        eventAliases.put("foodlc", FoodLevelChangeEvent.class);
+        eventAliases.put("items", ItemSpawnEvent.class);
+        eventAliases.put("pigz", PigZapEvent.class);
+        eventAliases.put("projh", ProjectileHitEvent.class);
+        // painting event aliases
+        eventAliases.put("painting", PaintingEvent.class);
+        eventAliases.put("paintingbe", PaintingBreakByEntityEvent.class);
+        eventAliases.put("paintingb", PaintingBreakEvent.class);
+        eventAliases.put("paintingp", PaintingPlaceEvent.class);
+        // player event aliases
         eventAliases.put("player", PlayerEvent.class);
         eventAliases.put("playeran", PlayerAnimationEvent.class);
         eventAliases.put("playerbede", PlayerBedEnterEvent.class);
@@ -156,6 +235,39 @@ public class DevBukkit extends JavaPlugin {
         eventAliases.put("playerr", PlayerRespawnEvent.class);
         eventAliases.put("playerte", PlayerTeleportEvent.class);
         eventAliases.put("playerts", PlayerToggleSneakEvent.class);
+        eventAliases.put("playerfe", PlayerFishEvent.class);
+        // inventory event aliases
+        eventAliases.put("furnaceb", FurnaceBurnEvent.class);
+        eventAliases.put("furnaces", FurnaceSmeltEvent.class);
+        // vehicle event aliases
+        eventAliases.put("vehicle", VehicleEvent.class);
+        eventAliases.put("vehiclebco", VehicleBlockCollisionEvent.class);
+        eventAliases.put("vehicleco", VehicleCollisionEvent.class);
+        eventAliases.put("vehiclecr", VehicleCreateEvent.class);
+        eventAliases.put("vehicleda", VehicleDamageEvent.class);
+        eventAliases.put("vehiclede", VehicleDestroyEvent.class);
+        eventAliases.put("vehiclen", VehicleEnterEvent.class);
+        eventAliases.put("vehicleec", VehicleEntityCollisionEvent.class);
+        eventAliases.put("vehiclex", VehicleExitEvent.class);
+        eventAliases.put("vehiclem", VehicleMoveEvent.class);
+        eventAliases.put("vehicleu", VehicleUpdateEvent.class);
+        // weather event aliases
+        eventAliases.put("weather", WeatherEvent.class);
+        eventAliases.put("lightings", LightningStrikeEvent.class);
+        eventAliases.put("thunderc", ThunderChangeEvent.class);
+        eventAliases.put("weatherc", WeatherChangeEvent.class);
+        // world event aliases
+        eventAliases.put("chunk", ChunkEvent.class);
+        eventAliases.put("chunkl", ChunkLoadEvent.class);
+        eventAliases.put("chunkp", ChunkPopulateEvent.class);
+        eventAliases.put("chunku", ChunkUnloadEvent.class);
+        eventAliases.put("portalc", PortalCreateEvent.class);
+        eventAliases.put("spawnc", SpawnChangeEvent.class);
+        eventAliases.put("world", WorldEvent.class);
+        eventAliases.put("worldi", WorldInitEvent.class);
+        eventAliases.put("worldl", WorldLoadEvent.class);
+        eventAliases.put("worlds", WorldSaveEvent.class);
+        eventAliases.put("worldu", WorldUnloadEvent.class);
     }
 
     public void onDisable() {
@@ -175,61 +287,58 @@ public class DevBukkit extends JavaPlugin {
         gods = new HashMap<Player, Boolean>();
         eventAliases = new TreeMap<String, Class<?>>();
         initialiseEventAliases();
-        setDebugMode(EntityEvent.class,false,false);
         setDebugMode(BlockEvent.class,false,false);
+        setDebugMode(EntityEvent.class,false,false);
+        setDebugMode(PaintingEvent.class,false,false);
         setDebugMode(PlayerEvent.class,false,false);
-        setCancelMode(EntityEvent.class,false,false);
+        setDebugMode(VehicleEvent.class,false,false);
+        setDebugMode(WeatherEvent.class,false,false);
+        setDebugMode(WorldEvent.class,false,false);
         setCancelMode(BlockEvent.class,false,false);
+        setCancelMode(EntityEvent.class,false,false);
+        setCancelMode(PaintingEvent.class,false,false);
         setCancelMode(PlayerEvent.class,false,false);
+        setCancelMode(VehicleEvent.class,false,false);
+        setCancelMode(WeatherEvent.class,false,false);
+        setCancelMode(WorldEvent.class,false,false);
 
         PluginManager pm = getServer().getPluginManager();
-        //entity events
-        pm.registerEvent(Event.Type.ENTITY_COMBUST, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DAMAGE, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_DEATH, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_TARGET, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.ENTITY_INTERACT, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.EXPLOSION_PRIME, entityListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.CREATURE_SPAWN, entityListener, Priority.Normal, this);
+        // block events
+        pm.registerEvents(blockListener, this);
 
-        //block events
-        pm.registerEvent(Event.Type.BLOCK_CANBUILD, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_DAMAGE, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_FROMTO, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_IGNITE, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_PHYSICS, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.LEAVES_DECAY, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.BLOCK_BURN, blockListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.SIGN_CHANGE, blockListener, Priority.Normal, this);
+        // entity events
+        // painting events
+        pm.registerEvents(entityListener, this);
 
-        //player events
-        pm.registerEvent(Event.Type.PLAYER_ANIMATION, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_COMMAND_PREPROCESS, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_BED_ENTER, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_BED_LEAVE, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_BUCKET_EMPTY, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_BUCKET_FILL, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_CHAT, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_DROP_ITEM, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_EGG_THROW, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_INTERACT_ENTITY, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_INTERACT, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_ITEM_HELD, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_JOIN, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_KICK, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_LOGIN, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_MOVE, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_PICKUP_ITEM, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_PORTAL, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_PRELOGIN, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_RESPAWN, playerListener, Priority.Normal, this);
-        pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Normal, this);
+        // inventory events
+        pm.registerEvents(inventoryListener, this);
+
+        // player events
+        pm.registerEvents(playerListener, this);
+
+        // vehicle events
+        pm.registerEvents(vehicleListener, this);
+
+        // weather events
+        pm.registerEvents(weatherListener, this);
+
+        // world events
+        pm.registerEvents(worldListener, this);
 
         loadConfig();
         saveConfig();
+
+        final ShapedRecipe ice = new ShapedRecipe(new ItemStack(Material.ICE, 4));
+        ice.shape("X", "Y");
+        ice.setIngredient('X', Material.WATER_BUCKET);
+        ice.setIngredient('Y', Material.SNOW_BALL);
+        getServer().addRecipe(ice);
+
+        final ShapedRecipe ironfence = new ShapedRecipe(new ItemStack(Material.IRON_FENCE, 10));
+        ironfence.shape("X X", "   ", "X X");
+        ironfence.setIngredient('X', Material.BUCKET);
+        getServer().addRecipe(ironfence);
+
         // Output some info so we can check all is well
         PluginDescriptionFile pdfFile = this.getDescription();
         System.out.println( pdfFile.getName() + " version " + pdfFile.getVersion() + " is enabled!" );
@@ -370,7 +479,9 @@ public class DevBukkit extends JavaPlugin {
                 if (player.getItemInHand().getData() != null) debugMessage("Item data: " + player.getItemInHand().getData().getData());
                 int maxStackSize = player.getItemInHand().getTypeId() == 0 ? 1 : player.getItemInHand().getMaxStackSize();
                 debugMessage("Item max stack size: " + maxStackSize);
-            } else{
+                debugMessage("In Vehicle: " + player.isInsideVehicle());
+                debugMessage("Vehicle: " + player.getVehicle());
+            } else {
                 return false;
             }
         } else {
@@ -387,7 +498,11 @@ public class DevBukkit extends JavaPlugin {
         printHelpHeader(sender);
         sender.sendMessage(eventStatus("block"));
         sender.sendMessage(eventStatus("entity"));
+        sender.sendMessage(eventStatus("painting"));
         sender.sendMessage(eventStatus("player"));
+        sender.sendMessage(eventStatus("vehicle"));
+        sender.sendMessage(eventStatus("weather"));
+        sender.sendMessage(eventStatus("world"));
         sender.sendMessage("Use help <name> to get help on a specific event. ");
 
     }
@@ -496,14 +611,40 @@ public class DevBukkit extends JavaPlugin {
     private String debugString(Event event) {
         Event e = event;
         String message = e.getClass().getSimpleName() + " [" + e.getType() + "]";
+        String isCancelled;
+
+        if (Cancellable.class.isAssignableFrom(e.getClass())) {
+            isCancelled = ((Cancellable) e).isCancelled() ? ChatColor.RED + "{C}" + ChatColor.WHITE : ChatColor.GREEN + "{C}"  + ChatColor.WHITE;
+            message += " " + isCancelled;
+        }
+
         if (e instanceof BlockEvent) {
+            Block block = ((BlockEvent) e).getBlock();
             if (e instanceof SignChangeEvent) {
                 SignChangeEvent signc = (SignChangeEvent) e;
 
                 message += " A sign was modified to: " + signc.getLine(0) + " // " + signc.getLine(1) + " // " + signc.getLine(2) + " // " + signc.getLine(3);
+            } else if (e instanceof BlockFormEvent) {
+                BlockFormEvent blockfo = (BlockFormEvent) e;
+
+                if (e instanceof BlockSpreadEvent) {
+                    BlockSpreadEvent blocksp = (BlockSpreadEvent) e;
+                    Block blockFrom = blocksp.getSource();
+
+                    message += " " + blocksp.getNewState().getType() + " spread from (" + blockFrom.getX() + ", " + blockFrom.getY() + ", " + blockFrom.getZ() + ") to (" + block.getX() + ", " + block.getY() + ", " + block.getZ()+ ")";
+                } else {
+                    message += " " + blockfo.getNewState().getType() + " formed at (" + block.getX() + ", " + block.getY() + ", " + block.getZ()+ ")";
+                }
+            } else if (e instanceof BlockFadeEvent) {
+                BlockFadeEvent blockfa = (BlockFadeEvent) e;
+
+                message += " " + blockfa.getNewState().getType() + " is fading at (" + block.getX() + ", " + block.getY() + ", " + block.getZ()+ ")";
+            } else if (e instanceof BlockRedstoneEvent) {
+                    BlockRedstoneEvent blockred = (BlockRedstoneEvent) e;
+
+                    message += " (" + block.getX() + ", " + block.getY() + ", " + block.getZ()+ ") " + block.getType() + "{" + block.getData() + "}, Old: " + blockred.getOldCurrent() + ", New: " + blockred.getNewCurrent();
             } else {
                 BlockEvent blockEvent = (BlockEvent) e;
-                Block block = blockEvent.getBlock();
 
                 message += " (" + block.getX() + " " + block.getY() + " " + block.getZ()+ ") " + block.getType() + "{" + block.getData() + "}";
             }
@@ -537,7 +678,7 @@ public class DevBukkit extends JavaPlugin {
                     message += " has targeted " + target.getClass().getSimpleName() + "[" + target.getEntityId() + "]" + " (" + entityt.getReason() + ")";
                 }
             } else if (e instanceof EntityDamageEvent) {
-                message += " was damaged";
+                message += " was damaged (" + ((EntityDamageEvent) e).getDamage() + ")";
                 if (e instanceof EntityDamageByBlockEvent) {
                     EntityDamageByBlockEvent entitydbb = (EntityDamageByBlockEvent) e;
                     Block block = entitydbb.getDamager();
@@ -553,7 +694,11 @@ public class DevBukkit extends JavaPlugin {
 
                         message += "a projectile (" + entitydbp.getProjectile().getClass().getSimpleName() + ") from ";
                     }
-                    message += damager.getClass().getSimpleName() + "[" + damager.getEntityId() + "]";
+                    if (damager == null) {
+                        message += damager.getClass().getSimpleName() + "[" + damager .getEntityId() + "]";
+                    } else {
+                        message += "a non-existant damager";
+                    }
                 }
                 message += " (" + ((EntityDamageEvent) event).getCause() + ")";
             } else if (e instanceof ExplosionPrimeEvent) {
@@ -571,6 +716,14 @@ public class DevBukkit extends JavaPlugin {
                 Location location = creaturesp.getLocation();
 
                 message += " spawned at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+            } else if (e instanceof EntityRegainHealthEvent) {
+                EntityRegainHealthEvent entityrh = (EntityRegainHealthEvent) e;
+
+                message += " regained " + entityrh.getAmount() + " health. Reason: " + entityrh.getRegainReason();
+            } else if (e instanceof FoodLevelChangeEvent) {
+                FoodLevelChangeEvent foodlc = (FoodLevelChangeEvent) e;
+
+                message += "'s hunger changed (" + foodlc.getFoodLevel() + ")";
             }
         } else if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
@@ -670,7 +823,7 @@ public class DevBukkit extends JavaPlugin {
                 PlayerJoinEvent playerj = (PlayerJoinEvent) e;
                 Location location = player.getLocation();
 
-                message += " joined at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                message += " joined at ([" + location.getWorld().getName() + "] " + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             } else if (e instanceof PlayerKickEvent) {
                 PlayerKickEvent playerk = (PlayerKickEvent) e;
 
@@ -700,7 +853,7 @@ public class DevBukkit extends JavaPlugin {
                 Item item = playerpi.getItem();
                 Location location = item.getLocation();
 
-                message += " picked up " + item.getItemStack().getType() + " at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                message += " picked up " + item.getItemStack().getType() + "[" + item.getItemStack().getAmount() +  "]" + " at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ") with " +  playerpi.getRemaining() + " remaining on the ground";
             } else if (e instanceof PlayerPreLoginEvent) {
                 // Todo: construct debug message.
                 PlayerPreLoginEvent playerpl = (PlayerPreLoginEvent) e;
@@ -708,7 +861,7 @@ public class DevBukkit extends JavaPlugin {
                 PlayerQuitEvent playerq = (PlayerQuitEvent) e;
                 Location location = player.getLocation();
 
-                message += " quit the server while located at (" + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
+                message += " quit the server while located at ([" + location.getWorld().getName() + "] " + location.getX() + ", " + location.getY() + ", " + location.getZ() + ")";
             } else if (e instanceof PlayerRespawnEvent) {
                 PlayerRespawnEvent playerr = (PlayerRespawnEvent) e;
                 Location location = playerr.getRespawnLocation();
@@ -718,6 +871,33 @@ public class DevBukkit extends JavaPlugin {
                 PlayerToggleSneakEvent playerts = (PlayerToggleSneakEvent) e;
 
                 message += " toggled sneaking " + (player.isSneaking() ? " on" : " off");
+            } else if (e instanceof PlayerFishEvent) {
+                PlayerFishEvent playerfe = (PlayerFishEvent) e;
+
+                message += " tried fishing at (" + player.getLocation().getX() + ", " + player.getLocation().getY() + ", " + player.getLocation().getZ() + "). State: " + playerfe.getState() + ". Caught: " +  (playerfe.getCaught() == null ? "nothing" : playerfe.getCaught().getClass().getSimpleName());
+            }
+        } else if (e instanceof FurnaceBurnEvent) {
+                FurnaceBurnEvent furnaceb = (FurnaceBurnEvent) e;
+                Block furnace = furnaceb.getFurnace();
+
+                message += " (" + furnace.getX() + ", " + furnace.getY() + ", " + furnace.getZ() + ") Fuel: " + furnaceb.getFuel().getType() + "; Burning time: " + furnaceb.getBurnTime();
+        } else if (e instanceof FurnaceSmeltEvent) {
+            FurnaceSmeltEvent furnaces = (FurnaceSmeltEvent) e;
+            Block furnace = furnaces.getFurnace();
+
+            message += " (" + furnace.getX() + ", " + furnace.getY() + ", " + furnace.getZ() + ") Source: " + furnaces.getSource().getType() + "; Result: " + furnaces.getResult().getType();
+        } else if (e instanceof WorldEvent) {
+            if (e instanceof ChunkEvent) {
+                Chunk chunk = ((ChunkEvent) e).getChunk();
+                if (e instanceof ChunkLoadEvent) {
+                    ChunkLoadEvent chunkl = (ChunkLoadEvent) e;
+
+                } else if (e instanceof ChunkUnloadEvent) {
+                    ChunkUnloadEvent chunku = (ChunkUnloadEvent) e;
+
+                    message += " chunk unloaded at (" + chunk.getX() + ", " + chunk.getZ() + ")";
+
+                }
             }
         }
         message += ".";

@@ -30,6 +30,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerFishEvent.State;
 
@@ -229,6 +230,13 @@ public class DevPlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onPlayerShearEntity(PlayerShearEntityEvent event) {
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
         plugin.godMode(event);

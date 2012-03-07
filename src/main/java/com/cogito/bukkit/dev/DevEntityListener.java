@@ -2,31 +2,15 @@ package com.cogito.bukkit.dev;
 
 import java.util.List;
 
+import org.bukkit.DyeColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Squid;
 
-import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.CreeperPowerEvent;
-import org.bukkit.event.entity.EntityCombustEvent;
-import org.bukkit.event.entity.EntityDamageByBlockEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageByProjectileEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.EntityInteractEvent;
-import org.bukkit.event.entity.EntityPortalEnterEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
-import org.bukkit.event.entity.EntityTameEvent;
-import org.bukkit.event.entity.EntityTargetEvent;
-import org.bukkit.event.entity.ExplosionPrimeEvent;
-import org.bukkit.event.entity.ItemSpawnEvent;
-import org.bukkit.event.entity.PigZapEvent;
 
 import org.bukkit.event.painting.PaintingBreakEvent;
 import org.bukkit.event.painting.PaintingPlaceEvent;
@@ -56,6 +40,20 @@ public class DevEntityListener implements Listener {
     }
 
     @EventHandler
+    public void onEntityCombustByBlock(EntityCombustByBlockEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onEntityCombustByEntity(EntityCombustByEntityEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
     public void onEntityCombust(EntityCombustEvent event) {
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
@@ -71,13 +69,6 @@ public class DevEntityListener implements Listener {
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        plugin.cancelEvent(event);
-        plugin.debugMessage(event);
-        plugin.godMode(event);
-    }
-
-    @EventHandler
-    public void onEntityDamageByProjectile(EntityDamageByProjectileEvent event) {
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
         plugin.godMode(event);
@@ -107,7 +98,6 @@ public class DevEntityListener implements Listener {
 
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.setYield(0);
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
         plugin.godMode(event);
@@ -143,6 +133,13 @@ public class DevEntityListener implements Listener {
 
     @EventHandler
     public void onEntityTarget(EntityTargetEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onEntityTeleport(EntityTeleportEvent event) {
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
         plugin.godMode(event);
@@ -185,6 +182,41 @@ public class DevEntityListener implements Listener {
 
     @EventHandler
     public void onPaintingPlace(PaintingPlaceEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onSheepRegrowWool(SheepRegrowWoolEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onSheepDyeWool(SheepDyeWoolEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onPotionSplash(PotionSplashEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onProjectileHit(ProjectileHitEvent event) {
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
         plugin.godMode(event);

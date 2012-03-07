@@ -3,15 +3,7 @@ package com.cogito.bukkit.dev;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkPopulateEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.event.world.PortalCreateEvent;
-import org.bukkit.event.world.SpawnChangeEvent;
-import org.bukkit.event.world.WorldInitEvent;
-import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.event.world.WorldSaveEvent;
-import org.bukkit.event.world.WorldUnloadEvent;
+import org.bukkit.event.world.*;
 
 /**
  * Handle all World related events
@@ -81,6 +73,13 @@ public class DevWorldListener implements Listener {
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
+        plugin.cancelEvent(event);
+        plugin.debugMessage(event);
+        plugin.godMode(event);
+    }
+
+    @EventHandler
+    public void onStructureGrowEvent(StructureGrowEvent event) {
         plugin.cancelEvent(event);
         plugin.debugMessage(event);
         plugin.godMode(event);

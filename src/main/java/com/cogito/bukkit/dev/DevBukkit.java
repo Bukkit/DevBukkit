@@ -1,6 +1,8 @@
 package com.cogito.bukkit.dev;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -172,15 +174,6 @@ import org.bukkit.inventory.ShapedRecipe;
  * Miscellaneous administrative commands
  */
 public class DevBukkit extends JavaPlugin {
-    private final DevBlockListener blockListener = new DevBlockListener(this);
-    private final DevEntityListener entityListener = new DevEntityListener(this);
-    private final DevInventoryListener inventoryListener = new DevInventoryListener(this);
-    private final DevPlayerListener playerListener = new DevPlayerListener(this);
-    private final DevServerListener serverListener = new DevServerListener(this);
-    private final DevVehicleListener vehicleListener = new DevVehicleListener(this);
-    private final DevWeatherListener weatherListener = new DevWeatherListener(this);
-    private final DevWorldListener worldListener = new DevWorldListener(this);
-    private final DevEnchantmentListener enchantmentListener = new DevEnchantmentListener(this);
     private boolean debugGlobal;
     private Map<Class<?>, Boolean> debugPrivates;
     private Map<Class<?>, Boolean> debugDefaultees;
@@ -349,34 +342,16 @@ public class DevBukkit extends JavaPlugin {
         setCancelMode(WeatherEvent.class,false,false);
         setCancelMode(WorldEvent.class,false,false);
 
-        PluginManager pm = getServer().getPluginManager();
-        // block events
-        pm.registerEvents(blockListener, this);
-
-        // enchantment events
-        pm.registerEvents(enchantmentListener, this);
-
-        // entity events
-        // painting events
-        pm.registerEvents(entityListener, this);
-
-        // inventory events
-        pm.registerEvents(inventoryListener, this);
-
-        // player events
-        pm.registerEvents(playerListener, this);
-
-        // server events
-        pm.registerEvents(serverListener, this);
-
-        // vehicle events
-        pm.registerEvents(vehicleListener, this);
-
-        // weather events
-        pm.registerEvents(weatherListener, this);
-
-        // world events
-        pm.registerEvents(worldListener, this);
+        try {
+            Field pluginManager = getServer().getClass().getDeclaredField("pluginManager");
+            pluginManager.setAccessible(true);
+            Field modifiers = Field.class.getDeclaredField("modifiers");
+            modifiers.setAccessible(true);
+            modifiers.setInt(pluginManager, pluginManager.getModifiers() & ~Modifier.FINAL);
+            pluginManager.set(getServer(), new SmartPluginManager(this, getServer().getPluginManager()));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         loadConfig();
         saveConfig();

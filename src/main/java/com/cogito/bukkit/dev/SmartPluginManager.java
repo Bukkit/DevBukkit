@@ -1,7 +1,9 @@
 package com.cogito.bukkit.dev;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.Set;
+import org.bukkit.command.CommandMap;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -13,10 +15,18 @@ public class SmartPluginManager implements PluginManager {
 
     private final DevBukkit plugin;
     private final PluginManager parent;
+    private CommandMap commandMap;
 
     public SmartPluginManager(DevBukkit plugin, PluginManager parent) {
         this.plugin = plugin;
         this.parent = parent;
+        try {
+            Field cmdMap = parent.getClass().getDeclaredField("commandMap");
+            cmdMap.setAccessible(true);
+            commandMap = (CommandMap) cmdMap.get(parent);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public void registerInterface(Class<? extends PluginLoader> loader) throws IllegalArgumentException {
